@@ -44,7 +44,7 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        base.OnJoinRoomFailed(returnCode, message);
+        //base.OnJoinRoomFailed(returnCode, message);
         //matchFailedWindow.SetActive(true);
     }
 

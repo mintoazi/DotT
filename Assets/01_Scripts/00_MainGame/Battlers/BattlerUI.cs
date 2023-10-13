@@ -22,7 +22,7 @@ public class BattlerUI : MonoBehaviour
     [SerializeField] private Text hpText;
 
 
-    public void Init(int charaType)
+    public void UpdateCharaType(int charaType)
     {
         battlerSkin.sprite = battlerSprite[charaType];
         typeImage.sprite = typeSprite[charaType];

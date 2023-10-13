@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -28,12 +29,20 @@ public class Attack : MonoBehaviour
         for (int i = 0; i < pos.Count; i++)
         {
             GameObject e = Instantiate(effect, transform);
+
             int x = pos[i].x;
             int y = pos[i].y;
-            if (!isEnemy)
+            Debug.Log(x + " " + y);
+            if (isEnemy)
             {
-                y += enemyPos;
+                if (x == 0) x = 2;
+                else if(x == 2) x = 0;
+                y = y - enemyPos;
+                Vector2Int v2i = Calculator.CalcReflection(new Vector2Int(x,y));
+                x = v2i.x;
+                y = v2i.y;
             }
+            Debug.Log(x + " " + y);
             Vector3 p = generateGame.Tiles[x,y].transform.position;
             p.y += 0.1f;
             e.transform.position = p;

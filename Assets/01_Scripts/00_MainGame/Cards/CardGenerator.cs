@@ -23,7 +23,7 @@ public class CardGenerator : MonoBehaviour
 
     private enum Num
     {
-        Id, Name, Description, SDescription, Cost, EType, AttackPos, 
+        Id, Name, Description, SDescription, Cost, EType, AttackAhead,
         AttackRange = 7,
         SAttackRange = 17,
         Damage = 16,
@@ -36,13 +36,14 @@ public class CardGenerator : MonoBehaviour
 
         // ÉJÅ[ÉhÇÃì«Ç›çûÇ›
         cardInfoData = CSVLoader.Load(cardInfoCSV);
-        for(int i = 0; i < cardInfoData.Count; i++)
+        for (int i = 0; i < cardInfoData.Count; i++)
         {
             int id = int.Parse(cardInfoData[i][(int)Num.Id]);
             string name = cardInfoData[i][(int)Num.Name];
             string desc = cardInfoData[i][(int)Num.Description];
             string sDesc = cardInfoData[i][(int)Num.SDescription];
             int cost = int.Parse(cardInfoData[i][(int)Num.Cost]);
+            int attackAhead = int.Parse(cardInfoData[i][(int)Num.AttackAhead]);
             int damage = int.Parse(cardInfoData[i][(int)Num.Damage]);
             int sDamage = int.Parse(cardInfoData[i][(int)Num.SDamage]);
             int[] attackRange = new int[9];
@@ -54,15 +55,16 @@ public class CardGenerator : MonoBehaviour
             }
             CardBases.Add(
                 new CardBase(
-                      id: id, 
-                      name: name, 
-                      desc: desc, 
-                      sDesc: sDesc, 
-                      cost: cost, 
+                      id: id,
+                      name: name,
+                      desc: desc,
+                      sDesc: sDesc,
+                      cost: cost,
+                      attackAhead: attackAhead,
                       attackPos: ReturnAttackPos(attackRange),
                       damage: damage,
                       sAttackPos: ReturnAttackPos(sAttackRange),
-                      sDamage:sDamage,
+                      sDamage: sDamage,
                       ReturnEType(cardInfoData[i][(int)Num.EType])
                     )
                 );
@@ -75,9 +77,9 @@ public class CardGenerator : MonoBehaviour
             for (int i = 0; i < posData.Length; i++)
             {
                 if (posData[i] == none) continue;
-                attackPos.Add(new Vector2Int(i % tileLength, i / tileLength));
+                attackPos.Add(new Vector2Int(i / tileLength, i % tileLength));
             }
-            
+
             return attackPos;
         }
         CardType ReturnEType(string type)
@@ -100,16 +102,12 @@ public class CardGenerator : MonoBehaviour
 
     public Card ReDraw(List<int> cost, bool isEnemy)
     {
-        List<CardBase> cbs = new List<CardBase>();
-        Debug.Log(cost);
-        int rand = UnityEngine.Random.Range(0, cost.Count);
-        rand = cost[rand];
-
+        List<int> ids = new List<int>();
         foreach (CardBase cb in CardBases)
         {
-            if(rand == cb.Cost) cbs.Add(cb);
+            if (cost.Contains(cb.Cost)) ids.Add(cb.Id);
         }
-        return DrawMethod(cbs.Count, isEnemy);
+        return DrawMethod(ids, isEnemy);
     }
 
     public Card DrawMethod(int cards, bool isEnemy)
@@ -119,6 +117,15 @@ public class CardGenerator : MonoBehaviour
         card.Set(CardBases[rand], isEnemy);
         return card;
     }
+
+    public Card DrawMethod(List<int> ids, bool isEnemy)
+    {
+        int rand = UnityEngine.Random.Range(0, ids.Count);
+        Card card = Instantiate(cardPrefab);
+        card.Set(CardBases[ids[rand]], isEnemy);
+        return card;
+    }
+
     public Card ChoiceDraw(int id, bool isEnemy)
     {
         Card card = Instantiate(cardPrefab);

@@ -15,11 +15,11 @@ public sealed class BattlerPresenter : MonoBehaviour
                 // View‚É”½‰f
                 view.UpdateHP(x);
             }).AddTo(this);
-
         for (int i = 0; i < model.IsCostUses.Length; i++)
         {
             SubscribeUseCost(i);
         }
+        
         void SubscribeUseCost(int n)
         {
             model.IsCostUses[n]
@@ -35,6 +35,13 @@ public sealed class BattlerPresenter : MonoBehaviour
             {
                 // View‚É”½‰f
                 view.UpdateType(x);
+            }).AddTo(this);
+
+        model.CharaType
+            .Subscribe(x =>
+            {
+                // View‚É”½‰f
+                view.UpdateCharaType(x);
             }).AddTo(this);
     }
 }

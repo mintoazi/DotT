@@ -4,6 +4,8 @@ using UniRx.Triggers;
 using Cysharp.Threading.Tasks;
 using Photon.Pun;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class GameMaster : MonoBehaviourPunCallbacks
 {
@@ -11,9 +13,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
     [SerializeField] Battler enemy;
     [SerializeField] GenerateGame generateGame;
     [SerializeField] SelectCard selectCard;
+    [SerializeField] GameObject winPanel;
+    [SerializeField] GameObject losePanel;
     [SerializeField] int hands = 3;
     private Battler currentBattler;
     private Battler waitBattler;
+    private int turns = 0;
 
     private Phase phase = Phase.Init;
     bool isPhase = false;
@@ -29,13 +34,25 @@ public class GameMaster : MonoBehaviourPunCallbacks
         Move,
         Attack,
         End,
-
+        Win,
+        Lose,
         Wait
     }
 
     private void Awake()
     {
         generateGame.GenerateTiles();
+        //player.OnSubmitAction = SubmittedAction;
+        //Update処理の追加
+        this.UpdateAsObservable()
+        .Subscribe(
+            _ => ManagedUpdate()
+        );
+    }
+    private void Start()
+    {
+        Debug.Log("初期フェイズ");
+        InitPhase();
     }
 
     private void ManagedUpdate()
@@ -45,7 +62,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         {
             case Phase.Init:
                 Debug.Log("初期フェイズ");
-                InitPhase();
+                //InitPhase();
                 break;
             case Phase.CoinTos:
                 Debug.Log("コイントスフェイズ");
@@ -54,7 +71,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
             case Phase.Draw:
                 Debug.Log("ドローフェイズ");
                 DrawPhase();
-                break; 
+                break;
             case Phase.ReDraw:
                 Debug.Log("リドローフェイズ");
                 ReDrawPhase().Forget();
@@ -80,36 +97,20 @@ public class GameMaster : MonoBehaviourPunCallbacks
                 EndPhase().Forget();
                 break;
             case Phase.Wait:
+                WaitPhase();
+                break;
+            case Phase.Win:
+                winPanel.SetActive(true);
+                isPhase = true;
+                break;
+            case Phase.Lose:
+                losePanel.SetActive(true);
+                isPhase = true;
                 break;
         }
     }
     private void InitPhase()
     {
-        //player.OnSubmitAction = SubmittedAction;
-        //Update処理の追加
-        this.UpdateAsObservable()
-        .Subscribe(
-            _ => ManagedUpdate()
-        );
-
-        int playerType = 0;
-        int enemyType = 0;
-
-        if (PhotonNetwork.IsMasterClient)
-        {
-            playerType = OnlineMenuManager.HostCharacter;
-            enemyType = OnlineMenuManager.GuestCharacter;
-            player.Init(20, playerType);//demo
-            enemy.Init(20, enemyType);
-        }
-        else
-        {
-            playerType = OnlineMenuManager.GuestCharacter;
-            enemyType = OnlineMenuManager.HostCharacter;
-            player.Init(20, playerType);//demo
-            enemy.Init(20, enemyType);
-        }
-
         SendCardsTo(player, isEnemy: false);
         SendCardsTo(enemy, isEnemy: true);
 
@@ -117,12 +118,27 @@ public class GameMaster : MonoBehaviourPunCallbacks
         {
             for (int i = 0; i < hands; i++)
             {
-                Debug.Log("ドロー" + i);
+                //Debug.Log("ドロー" + i);
                 Card card = Locator<CardGenerator>.Instance.Draw(isEnemy);
                 target.SetCardToHand(card);
             }
         }
-        phase = Phase.CoinTos;
+
+        int hostType = OnlineMenuManager.HostCharacter;
+        int guestType = OnlineMenuManager.GuestCharacter;
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            player.Init(20, hostType);//demo
+            enemy.Init(20, guestType);
+        }
+        else
+        {
+            player.Init(20, guestType);//demo
+            enemy.Init(20, hostType);
+        }
+
+        SetPhase(Phase.CoinTos);
     }
 
     // ターンの設定
@@ -158,46 +174,49 @@ public class GameMaster : MonoBehaviourPunCallbacks
     {
         isPhase = true;
 
+        turns++;
+        currentBattler.IsWait = false;
         for (int i = 0; i < 2; i++)
         {
+            Debug.Log(currentBattler.gameObject.name);
             Card card = Locator<CardGenerator>.Instance.Draw(CheckPlayer());
             currentBattler.Draw(card);
             photonView.RPC(nameof(Draw), RpcTarget.Others, card.Base.Id);
         }
 
-        phase = Phase.ChangeType;
+        SetPhase(Phase.ChangeType);
         isPhase = false;
     }
     private async UniTask ReDrawPhase()
     {
         isPhase = true;
 
-        List<int> costs = await currentBattler.ReDraw(CheckPlayer());
+        List<int> costs = await currentBattler.ReDraw();
         if (costs == null)
         {
-            phase = Phase.PlayCard;
+            SetPhase(Phase.PlayCard);
             isPhase = false;
             return;
         }
         Card card = Locator<CardGenerator>.Instance.ReDraw(costs, CheckPlayer());
-        
+
         photonView.RPC(nameof(ReDraw), RpcTarget.Others, card.Base.Id);
         currentBattler.SetCardToHand(card);
         selectCard.DeleteCard();
 
-        phase = Phase.PlayCard;
+        SetPhase(Phase.PlayCard);
         isPhase = false;
     }
 
     private async UniTask ChangeTypePhase()
     {
         isPhase = true;
-        
+
         int type = await currentBattler.ChangeType();
-        photonView.RPC(nameof(ChangeType), RpcTarget.Others, type);
+        photonView.RPC(nameof(ChangeType), RpcTarget.Others, type, currentBattler.RecentCard.Base.Id);
         selectCard.DeleteCard();
 
-        phase = Phase.ReDraw;
+        SetPhase(Phase.ReDraw);
         isPhase = false;
     }
 
@@ -206,20 +225,24 @@ public class GameMaster : MonoBehaviourPunCallbacks
         isPhase = true;
 
         await currentBattler.PlayCard();
+        photonView.RPC(nameof(PlayCard), RpcTarget.Others, currentBattler.RecentCard.Base.Id);
         selectCard.DeleteCard();
-        
-        phase = Phase.Move;
+
+        SetPhase(Phase.Move);
         isPhase = false;
     }
-    
+
     private async UniTask MovePhase()
     {
         isPhase = true;
         generateGame.ActiveCanMoveTiles();
-        await currentBattler.Move();
+        Vector2Int movedPos = await currentBattler.Move();
+        Debug.Log(movedPos);
+        generateGame.RecieveMove(isMyClient: true, pos: movedPos);
         generateGame.DeactiveMoveTiles();
+        //Debug.Log(currentBattler.BattlerMove.PiecePos);
         photonView.RPC(nameof(Move), RpcTarget.Others, Calculator.Vector2IntToInt(currentBattler.BattlerMove.PiecePos));
-        phase = Phase.Attack;
+        SetPhase(Phase.Attack);
         isPhase = false;
     }
 
@@ -246,7 +269,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
         // Effect
         Locator<Attack>.Instance.
-            PlayEffect(Calculator.CalcDamagePos(currentBattler.BattlerMove.PiecePos, attackPos), (int)card.Base.Type, isMatch, !PhotonNetwork.IsMasterClient);
+            PlayEffect(Calculator.CalcEffectPos(currentBattler.BattlerMove.PiecePos, attackPos, card.Base.AttackAhead), (int)card.Base.Type, isMatch, false);
         photonView.RPC(nameof(AttackEffect), RpcTarget.Others, id, (int)card.Base.Type, isMatch);
 
         // Damage
@@ -256,18 +279,55 @@ public class GameMaster : MonoBehaviourPunCallbacks
         await UniTask.Delay(500); // エフェクト終了待ち
 
         isPhase = false;
-        phase = Phase.End;
+        
+        SetPhase(Phase.End);
+        CheckVictoryOrDefeat();
     }
 
     private async UniTask EndPhase()
     {
         isPhase = true;
         await UniTask.DelayFrame(10); // UI処理
-        phase = Phase.Wait;
+        
+        SetPhase(Phase.Wait);
+        
         ChangeTurn();
         photonView.RPC(nameof(ChangeTurn), RpcTarget.Others);
         photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Draw);
+        
         isPhase = false;
+    }
+
+    private void CheckVictoryOrDefeat()
+    {
+        if (waitBattler.Health.Value < 0)
+        {
+            SetPhase(Phase.Win);
+            photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Lose);
+            return;
+        }
+        if (currentBattler.IsCostUses.All(result => result.Value == false) && waitBattler.IsCostUses.All(result => result.Value == false)) return;
+        if (currentBattler.Health.Value > waitBattler.Health.Value)
+        {
+            SetPhase(Phase.Win);
+            photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Lose);
+        }
+        else
+        {
+            SetPhase(Phase.Lose);
+            photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Win);
+        }
+    }
+
+    public void Surrender()
+    {
+        SetPhase(Phase.Lose);
+        photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Win);
+    }
+
+    private void WaitPhase()
+    {
+        waitBattler.IsWait = true;
     }
 
     [PunRPC]
@@ -278,7 +338,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         {
             currentBattler = enemy;
             waitBattler = player;
-            Debug.Log("ホストが敵、ゲストが味方");
+            //Debug.Log("ホストが敵、ゲストが味方");
         }
         else
         {
@@ -291,19 +351,18 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private void SetPhase(Phase phase)
     {
         this.phase = phase;
+        //Debug.Log($"{phase}");
     }
     [PunRPC]
     private void ChangeTurn()
     {
         Battler tmp = currentBattler;
         currentBattler = waitBattler;
-        waitBattler = currentBattler;
+        waitBattler = tmp;
     }
     [PunRPC]
     private void Draw(int id)
     {
-        Debug.Log(currentBattler);
-        Debug.Log(CheckPlayer());
         currentBattler.Draw(Locator<CardGenerator>.Instance.ChoiceDraw(id, CheckPlayer()));
     }
     [PunRPC]
@@ -311,10 +370,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
     {
         currentBattler.RemoveCard(id);
     }
+    
     [PunRPC]
-    private void ChangeType(int type)
+    private void ChangeType(int type, int id)
     {
         currentBattler.ChangeType(type);
+        currentBattler.RemoveCard(id);
     }
     [PunRPC]
     private void PlayCard(int id)
@@ -324,17 +385,20 @@ public class GameMaster : MonoBehaviourPunCallbacks
     [PunRPC]
     private void Move(int pos)
     {
-        currentBattler.Moved(Calculator.IntToVector2Int(pos));
+        //Debug.Log(pos);
+        Vector2Int movedPos = Calculator.IntToVector2Int(pos);
+        generateGame.RecieveMove(isMyClient: false, pos: movedPos);
     }
     [PunRPC]
     private void AttackEffect(int id, int type, bool isMatch)
     {
         List<Vector2Int> attackPos;
-        if (isMatch) attackPos = Locator<CardGenerator>.Instance.CardBases[id].SAttackPos;
-        else attackPos = Locator<CardGenerator>.Instance.CardBases[id].AttackPos;
-
+        CardBase card = Locator<CardGenerator>.Instance.CardBases[id];
+        if (isMatch) attackPos = card.SAttackPos;
+        else attackPos = card.AttackPos;
+        List <Vector2Int> calcAttackPos = Calculator.CalcEffectPos(currentBattler.BattlerMove.PiecePos, attackPos, card.AttackAhead);
         Locator<Attack>.Instance.
-            PlayEffect(attackPos, type, isMatch, !PhotonNetwork.IsMasterClient);
+            PlayEffect(calcAttackPos, type, isMatch, isEnemy: true);
     }
     [PunRPC]
     private void Damage(int id, int damage, bool isMatch)
@@ -344,5 +408,21 @@ public class GameMaster : MonoBehaviourPunCallbacks
         else attackPos = Calculator.CalcDamagePos(currentBattler.BattlerMove.PiecePos, Locator<CardGenerator>.Instance.CardBases[id].AttackPos);
 
         waitBattler.Damage(attackPos, damage);
+    }
+
+    public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
+    {
+        SetPhase(Phase.Win);
+        //photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Lose);
+    }
+    public void OnClickTitle()
+    {
+        SceneManager.LoadScene("MatchingScene");
+        photonView.RPC(nameof(LoadScene), RpcTarget.Others, "MatchingScene");
+    }
+    [PunRPC]
+    public void LoadScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
     }
 }

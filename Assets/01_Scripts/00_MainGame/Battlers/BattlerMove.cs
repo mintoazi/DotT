@@ -5,7 +5,6 @@ using UniRx.Triggers;
 
 public class BattlerMove : MonoBehaviour
 {
-    [SerializeField] private GameObject piece;
     [SerializeField] private Camera playerCamera;
     private RaycastHit raycastHit;
     [SerializeField] private GameObject selectTile;
@@ -47,11 +46,12 @@ public class BattlerMove : MonoBehaviour
         return PiecePos;
     }
 
-    public void Moved(Vector3 pos)
+    public void Moved(Vector3 pos, Vector2Int currentPos)
     {
-        var diff = pos - transform.position;
+        //var diff = pos - transform.position;
         transform.position = pos;
-        PiecePos = new Vector2Int(PiecePos.x + (int)diff.x, PiecePos.y + (int)(diff.z / tileSpace.z));
+        PiecePos = currentPos;
+        Debug.Log(PiecePos + "Ç…à⁄ìÆÇµÇΩ");
     }
 
     /// <summary>
@@ -80,8 +80,9 @@ public class BattlerMove : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && selectTile)
             {
                 var diff = raycastHit.transform.position - transform.position;
-                transform.position = raycastHit.transform.position;
-                PiecePos = new Vector2Int(PiecePos.x + (int)diff.x, PiecePos.y + (int)(diff.z / tileSpace.z));
+                //transform.position = raycastHit.transform.position;
+                PiecePos = new Vector2Int(PiecePos.x + (int)(diff.z / tileSpace.z), PiecePos.y + (int)diff.x);
+                Debug.Log(PiecePos + "Ç…à⁄ìÆÇµÇΩÇ¢");
                 // à⁄ìÆÇµÇΩÉKÉCÉhÇè¡Ç∑
                 selectTile.SetActive(false);
                 canMove = false;

@@ -17,6 +17,7 @@ public class CardBase
     [SerializeField] int damage;
     [SerializeField] int[] sRange;
     [SerializeField] int sDamage;
+    [SerializeField] int attackAhead;
     List<Vector2Int> attackPos;
     List<Vector2Int> sAttackPos;
     [SerializeField] Sprite icon;
@@ -31,10 +32,12 @@ public class CardBase
     public string SDescripiton { get => sDescripiton; }
     public int Damage{ get => damage; }
     public int SDamage { get => sDamage; }
+    public int AttackAhead { get => attackAhead; }
     public List<Vector2Int> AttackPos { get => attackPos; }
     public List<Vector2Int> SAttackPos { get => sAttackPos; }
     public CardBase(
-          int id, string name, string desc, string sDesc,int cost,
+          int id, string name, string desc, string sDesc, int cost,
+          int attackAhead,
           List<Vector2Int> attackPos, int damage,
           List<Vector2Int> sAttackPos, int sDamage, 
           CardType type) 
@@ -44,6 +47,7 @@ public class CardBase
         this.description = desc;
         this.sDescripiton = sDesc;
         this.cost = cost;
+        this.attackAhead = attackAhead;
         this.type = type;
         this.attackPos = attackPos;
         this.sAttackPos = sAttackPos;

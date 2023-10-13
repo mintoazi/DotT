@@ -33,9 +33,10 @@ public class Battler : MonoBehaviour
 
     public bool IsTurn { get; set; }
     public bool IsSubmit { get; private set; }
+    public bool IsWait { get; set; }
     public BattlerHand Hand { get => hand; }
     public BattlerMove BattlerMove { get => battlerMove; }
-   // public UnityAction OnSubmitAction;
+    // public UnityAction OnSubmitAction;
 
     //HP
     public IReadOnlyReactiveProperty<int> Health => _health;
@@ -44,7 +45,7 @@ public class Battler : MonoBehaviour
     //Cost
     public IReadOnlyReactiveProperty<bool>[] IsCostUses => _isCostUses;
     private readonly BoolReactiveProperty[] _isCostUses = new BoolReactiveProperty[COSTS];
-    
+
     //現在の属性
     public IReadOnlyReactiveProperty<int> CurrentType => _currentType;
     public readonly IntReactiveProperty _currentType = new IntReactiveProperty(0);
@@ -62,15 +63,16 @@ public class Battler : MonoBehaviour
             _isCostUses[i].Dispose();
         }
     }
-
-    public void Init(int health, int type)
+    private void Awake()
     {
         for (int i = 0; i < COSTS; i++)
         {
             _isCostUses[i] = new BoolReactiveProperty();
             _isCostUses[i].Value = false;
         }
-
+    }
+    public void Init(int health, int type)
+    {
         _health.Value = health;
         _currentType.Value = type;
         _charaType.Value = type;
@@ -94,7 +96,7 @@ public class Battler : MonoBehaviour
 
     private void SelectedCard(Card card)
     {
-        if (IsSubmit) return;
+        if (IsSubmit || IsWait) return;
         // すでにセットしていればセットしていたカードを手札に戻す
         if(selectCard.SelectedCard) 
         {
@@ -104,12 +106,10 @@ public class Battler : MonoBehaviour
         selectCard.Set(card);
     }
 
-    
-
     /// <summary>
     /// 使えるカードと交換する
     /// </summary>
-    public async UniTask<List<int>> ReDraw(bool isEnemy)
+    public async UniTask<List<int>> ReDraw()
     {
         // 使えるカードがあるかチェックする
         bool isReDraw = CheckCanUseCard();
@@ -118,7 +118,11 @@ public class Battler : MonoBehaviour
         List<int> costs = new List<int>();
         for (int i = 0; i < _isCostUses.Length; i++)
         {
-            if (!_isCostUses[i].Value) costs.Add(i);
+            if (!_isCostUses[i].Value)
+            {
+                costs.Add(i);
+                Debug.Log(i);
+            }
         }
 
         // パネルの表示
@@ -139,8 +143,10 @@ public class Battler : MonoBehaviour
         bool CheckCanUseCard()
         {
             List<Card> cards = hand.Hands;
+            
             foreach (Card c in cards)
             {
+                Debug.Log(c.Base.Cost);
                 if (!_isCostUses[c.Base.Cost].Value) return true; // 使えるカードが見つかったら処理を抜ける
             }
             return false;
@@ -162,7 +168,7 @@ public class Battler : MonoBehaviour
 
         var buttonEvent = changeTypeSubmitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
         await buttonEvent.OnInvokeAsync();
-
+        RecentCard = selectCard.SelectedCard;
         ChangeType((int)selectCard.SelectedCard.Base.Type);
         SetActivePanel(target: changeTypePanel, isActive: false);
         return (int)selectCard.SelectedCard.Base.Type;
@@ -201,23 +207,23 @@ public class Battler : MonoBehaviour
     /// <returns>移動先</returns>
     public async UniTask<Vector2Int> Move()
     {
-        Vector2Int pos = await BattlerMove.Move();
-        return pos;
+        return await BattlerMove.Move();
     }
 
     public void Damage(List<Vector2Int> attackPos, int damage)
     {
         Debug.Log("ダメージを受ける側の現在地" + battlerMove.PiecePos);
-        
+        attackPos = Calculator.CalcReflection(attackPos);
         for (int i = 0; i < attackPos.Count; i++)
         {
-            Debug.Log(attackPos[i]);
             if (battlerMove.PiecePos == attackPos[i])
             {
                 _health.Value -= damage;
             }
         }
     }
+
+   
 
     private void RemoveCard(Card card)
     {
@@ -242,9 +248,7 @@ public class Battler : MonoBehaviour
     public void PlayCard(int id)
     {
         hand.Remove();
-    }
-    public void Moved(Vector2Int v2i, bool isMyClient)
-    {
-        
+        int cost = Locator<CardGenerator>.Instance.CardBases[id].Cost;
+        _isCostUses[cost].Value = true;
     }
 }

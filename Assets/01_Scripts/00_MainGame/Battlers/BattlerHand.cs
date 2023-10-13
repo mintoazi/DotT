@@ -25,7 +25,9 @@ public class BattlerHand : MonoBehaviour
     }
     public void Remove()
     {
+        Card c = Hands[0];
         Hands.RemoveAt(0);
+        Destroy(c.gameObject);
         ResetPositions();
     }
 

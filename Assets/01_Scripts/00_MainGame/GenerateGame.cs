@@ -73,31 +73,33 @@ public class GenerateGame : MonoBehaviour
     {
         if (isMyClient)
         {
-            player.BattlerMove.Moved(tiles[pos.y,pos.x].transform.position);
+            player.BattlerMove.Moved(tiles[pos.y,pos.x].transform.position, pos);
         }
         else
         {
+            //Debug.Log(pos);
             // ‹¾‰f
             int x = pos.x;
             if (x == 0) x = 2;
             else if (x == 2) x = 0;
+
             int y = pos.y;
             if (y == 0) y = 2;
             else if (y == 2) y = 0;
-
+            
             x += tilesData.GetLength(0);
             //y += tilesData.GetLength(0);
-
-            enemy.BattlerMove.Moved(tiles[y, x].transform.position);
+            //Debug.Log(y + " " + x);
+            enemy.BattlerMove.Moved(tiles[y, x].transform.position, pos);
         }
     }
 
     public void ActiveCanMoveTiles()
     {
         var pos = player.BattlerMove.PiecePos;
-        int x = pos.x;
-        int y = pos.y;
-
+        int x = pos.y;
+        int y = pos.x;
+        Debug.Log(pos);
         if (x < Tiles.GetLength(0) - 1) canMoveTiles[x + 1, y].SetActive(true);
         if (x > 0) canMoveTiles[x - 1, y].SetActive(true);
         if (y < Tiles.GetLength(0) - 1) canMoveTiles[x, y + 1].SetActive(true);
