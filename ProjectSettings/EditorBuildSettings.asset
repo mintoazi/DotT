@@ -11,7 +11,13 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/00_Scenes/Test_Main.unity
     guid: f55d72cd6fd0f924cb90f2146432ace6
-  - enabled: 1
+  - enabled: 0
     path: Assets/00_Scenes/OnlineMain.unity
     guid: 1ca3f6cd16186884eb30e8f68914c49d
+  - enabled: 1
+    path: Assets/00_Scenes/MatchingScene.unity
+    guid: 49ee94bed000fca4ba48a9235b770d22
+  - enabled: 1
+    path: Assets/00_Scenes/Battle.unity
+    guid: c9b9944090b7ce24cbb4d3235597a14d
   m_configObjects: {}

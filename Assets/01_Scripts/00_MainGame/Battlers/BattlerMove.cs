@@ -8,27 +8,18 @@ public class BattlerMove : MonoBehaviour
     [SerializeField] private GameObject piece;
     [SerializeField] private Camera playerCamera;
     private RaycastHit raycastHit;
-    [SerializeField] private GameObject tile;
-    [SerializeField] private GameObject canMoveTile;
     [SerializeField] private GameObject selectTile;
     [SerializeField] private Vector3 tileSpace;
     
-
-    private int tileLength = 3; // タイルの量
-    private GameObject[,] tiles = new GameObject[3,3]; // タイル
-    private GameObject[,] canMoveTiles = new GameObject[3,3]; // ガイド用のタイル
-
-    private Vector2Int piecePos = new Vector2Int(1, 1); // 現在のプレイヤー位置
-    public Vector2Int PiecePos { get => piecePos; private set => piecePos = value; }
+    public Transform[,] TilePosition { get; set; }
+    public Vector2Int PiecePos { get; private set; } // 現在のプレイヤー位置
 
     // 移動できるフラグ
     bool canMove = false;
 
-    void Start()
+    void Awake()
     {
-        CreateTiles();
-        DeactiveMoveTile();
-
+        Init();
         //Update処理の登録
         this.UpdateAsObservable()
         .Subscribe(
@@ -36,14 +27,31 @@ public class BattlerMove : MonoBehaviour
         );
     }
 
+    public void Init()
+    {
+        PiecePos = new Vector2Int(1, 1);
+    }
+
+    public void SetPosition(Vector3 pos)
+    {
+        transform.position = pos;
+    }
+
     /// <summary>
     /// 移動が完了するまで待つ
     /// </summary>
-    public async UniTask Move()
+    public async UniTask<Vector2Int> Move()
     {
         canMove = true;
-        ActiveMoveTile();
         await UniTask.WaitUntil(() => !canMove);
+        return PiecePos;
+    }
+
+    public void Moved(Vector3 pos)
+    {
+        var diff = pos - transform.position;
+        transform.position = pos;
+        PiecePos = new Vector2Int(PiecePos.x + (int)diff.x, PiecePos.y + (int)(diff.z / tileSpace.z));
     }
 
     /// <summary>
@@ -71,50 +79,12 @@ public class BattlerMove : MonoBehaviour
             // 移動先のタイルをクリックしたら移動
             if (Input.GetMouseButtonDown(0) && selectTile)
             {
-                piece.transform.position = raycastHit.transform.position;
-                PiecePos = new Vector2Int((int)piece.transform.localPosition.x, (int)(piece.transform.localPosition.z / tileSpace.z));
-
+                var diff = raycastHit.transform.position - transform.position;
+                transform.position = raycastHit.transform.position;
+                PiecePos = new Vector2Int(PiecePos.x + (int)diff.x, PiecePos.y + (int)(diff.z / tileSpace.z));
                 // 移動したガイドを消す
-                DeactiveMoveTile();
                 selectTile.SetActive(false);
                 canMove = false;
-            }
-        }
-    }
-
-    private void CreateTiles()
-    {
-        for (int x = 0; x < tileLength; x++) 
-        {
-            for (int y = 0; y < tileLength; y++)
-            {
-                //Debug.Log(x + ":" + y);
-                tiles[x, y] = Instantiate(tile, this.transform);
-                tiles[x, y].transform.localPosition = new Vector3(tileSpace.x * x, 0f, tileSpace.z * y);
-                canMoveTiles[x, y] = Instantiate(canMoveTile, this.transform);
-                canMoveTiles[x, y].transform.localPosition = new Vector3(tileSpace.x * x, tileSpace.y, tileSpace.z * y);
-            }
-        }
-    }
-
-    private void ActiveMoveTile()
-    {
-        int x = PiecePos.x;
-        int y = PiecePos.y;
-
-        if (x < tileLength - 1) canMoveTiles[x + 1, y].SetActive(true);
-        if (x > 0) canMoveTiles[x - 1, y].SetActive(true);
-        if (y < tileLength - 1) canMoveTiles[x, y + 1].SetActive(true);
-        if (y > 0) canMoveTiles[x, y - 1].SetActive(true);
-    }
-
-    private void DeactiveMoveTile()
-    {
-        for (int i = 0; i < tileLength; i++)
-        {
-            for (int j = 0; j < tileLength; j++)
-            {
-                canMoveTiles[i, j].SetActive(false);
             }
         }
     }

@@ -1317,6 +1317,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2137732404}
   - component: {fileID: 2137732403}
+  - component: {fileID: 2137732405}
   m_Layer: 0
   m_Name: OnlineManager
   m_TagString: Untagged
@@ -1353,6 +1354,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2137732405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2137732402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af5f584f54b58be46a407a6bf4d17b32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2142704846
 GameObject:
   m_ObjectHideFlags: 0
@@ -1436,13 +1449,13 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2142704849}
   m_TextComponent: {fileID: 1803565042}
   m_Placeholder: {fileID: 358782510}
-  m_ContentType: 0
+  m_ContentType: 2
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 4
   m_LineType: 0
   m_HideMobileInput: 0
-  m_CharacterValidation: 0
+  m_CharacterValidation: 1
   m_CharacterLimit: 0
   m_OnSubmit:
     m_PersistentCalls:

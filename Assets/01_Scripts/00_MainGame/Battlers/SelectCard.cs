@@ -17,9 +17,11 @@ public class SelectCard : MonoBehaviour
     // 自分の子要素にする・位置の変更
     public void Set(Card card)
     {
+        if (selectedPosition == null) return;
         selectedCard = card;
         card.transform.SetParent(selectedCardParent);
         card.transform.position = selectedPosition.position;
+        card.SetScale(true);
     }
 
     public void DeleteCard()
