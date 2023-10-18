@@ -51,7 +51,7 @@ public class BattlerMove : MonoBehaviour
         //var diff = pos - transform.position;
         transform.position = pos;
         PiecePos = currentPos;
-        Debug.Log(PiecePos + "Ç…à⁄ìÆÇµÇΩ");
+       // Debug.Log(PiecePos + "Ç…à⁄ìÆÇµÇΩ");
     }
 
     /// <summary>
@@ -81,8 +81,9 @@ public class BattlerMove : MonoBehaviour
             {
                 var diff = raycastHit.transform.position - transform.position;
                 //transform.position = raycastHit.transform.position;
-                PiecePos = new Vector2Int(PiecePos.x + (int)(diff.z / tileSpace.z), PiecePos.y + (int)diff.x);
-                Debug.Log(PiecePos + "Ç…à⁄ìÆÇµÇΩÇ¢");
+                PiecePos = new Vector2Int(PiecePos.x + (int)(diff.z / tileSpace.z),
+                                          PiecePos.y + (int)diff.x);
+                //Debug.Log(PiecePos + "Ç…à⁄ìÆÇµÇΩÇ¢");
                 // à⁄ìÆÇµÇΩÉKÉCÉhÇè¡Ç∑
                 selectTile.SetActive(false);
                 canMove = false;

@@ -28,8 +28,8 @@ public class GenerateGame : MonoBehaviour
     [SerializeField] private Vector3 tileSize;
     [SerializeField] private Battler player;
     [SerializeField] private Battler enemy;
-    private GameObject[,] canMoveTiles = new GameObject[3, 6];
-    private GameObject[,] tiles = new GameObject[3,6];
+    private GameObject[,] canMoveTiles = new GameObject[6, 3];
+    private GameObject[,] tiles = new GameObject[6,3];
     private enum BattlerNum
     {
         None,   // 0
@@ -38,9 +38,12 @@ public class GenerateGame : MonoBehaviour
     }
     private int[,] tilesData =
     {
-        {0,0,0,0,0,0 },
-        {0,1,0,0,2,0 },
-        {0,0,0,0,0,0 },
+        {0,0,0},
+        {0,1,0},
+        {0,0,0},
+        {0,0,0},
+        {0,2,0},
+        {0,0,0},
     };
 
     public GameObject[,] Tiles { get => tiles; }
@@ -54,8 +57,10 @@ public class GenerateGame : MonoBehaviour
             {
                 canMoveTiles[i, j] = Instantiate(canMoveTilePrefab, transform);
                 Tiles[i, j] = Instantiate(tilePrefab, transform);
-                // 左右対称にタイルを生成
-                Vector3 pos = new Vector3(tileSize.x * (i - Tiles.GetLength(0) / 2),0f,tileSize.z * (j - Tiles.GetLength(1) / 2) + tileSize.z / 2);
+                // タイルを生成
+                float x = tileSize.x * j;
+                float y = tileSize.z * i;
+                Vector3 pos = new Vector3(x,0f,y);
 
                 // ここの計算を後で見やすくしたい
                 Tiles[i, j].transform.localPosition = pos;
@@ -73,36 +78,26 @@ public class GenerateGame : MonoBehaviour
     {
         if (isMyClient)
         {
-            player.BattlerMove.Moved(tiles[pos.y,pos.x].transform.position, pos);
+            player.BattlerMove.Moved(tiles[pos.x,pos.y].transform.position, pos);
         }
         else
         {
-            //Debug.Log(pos);
-            // 鏡映
-            int x = pos.x;
-            if (x == 0) x = 2;
-            else if (x == 2) x = 0;
-
-            int y = pos.y;
-            if (y == 0) y = 2;
-            else if (y == 2) y = 0;
-            
-            x += tilesData.GetLength(0);
-            //y += tilesData.GetLength(0);
-            //Debug.Log(y + " " + x);
-            enemy.BattlerMove.Moved(tiles[y, x].transform.position, pos);
+            Vector2Int movedPos = Calculator.CalcReflection(pos);
+            Vector2Int enemyPos = movedPos;
+            movedPos = Calculator.CalcEnemyPosition(movedPos);
+            enemy.BattlerMove.Moved(tiles[movedPos.x, movedPos.y].transform.position, pos);
         }
     }
 
     public void ActiveCanMoveTiles()
     {
         var pos = player.BattlerMove.PiecePos;
-        int x = pos.y;
-        int y = pos.x;
-        Debug.Log(pos);
-        if (x < Tiles.GetLength(0) - 1) canMoveTiles[x + 1, y].SetActive(true);
+        int x = pos.x;
+        int y = pos.y;
+        //Debug.Log(pos);
+        if (x < Tiles.GetLength(1) - 1) canMoveTiles[x + 1, y].SetActive(true);
         if (x > 0) canMoveTiles[x - 1, y].SetActive(true);
-        if (y < Tiles.GetLength(0) - 1) canMoveTiles[x, y + 1].SetActive(true);
+        if (y < Tiles.GetLength(1) - 1) canMoveTiles[x, y + 1].SetActive(true);
         if (y > 0) canMoveTiles[x, y - 1].SetActive(true);
     }
 

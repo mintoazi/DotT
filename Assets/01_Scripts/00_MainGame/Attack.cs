@@ -22,7 +22,7 @@ public class Attack : MonoBehaviour
     public void PlayEffect(List<Vector2Int> pos, int type, bool isMatchType, bool isEnemy)
     {
         GameObject effect;
-        int enemyPos = 3;
+        List<Vector2Int> effectPos = pos;
         if (isMatchType) effect = matchEffects[type];
         else effect = effects[type];
         
@@ -30,20 +30,12 @@ public class Attack : MonoBehaviour
         {
             GameObject e = Instantiate(effect, transform);
 
-            int x = pos[i].x;
-            int y = pos[i].y;
-            Debug.Log(x + " " + y);
             if (isEnemy)
             {
-                if (x == 0) x = 2;
-                else if(x == 2) x = 0;
-                y = y - enemyPos;
-                Vector2Int v2i = Calculator.CalcReflection(new Vector2Int(x,y));
-                x = v2i.x;
-                y = v2i.y;
+                //e.transform.rotation = Quaternion.Euler(0, 180, 0);
             }
-            Debug.Log(x + " " + y);
-            Vector3 p = generateGame.Tiles[x,y].transform.position;
+
+            Vector3 p = generateGame.Tiles[effectPos[i].x ,effectPos[i].y].transform.position;
             p.y += 0.1f;
             e.transform.position = p;
             Destroy(e, destroyTime);

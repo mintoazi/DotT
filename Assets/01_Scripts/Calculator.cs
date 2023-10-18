@@ -50,38 +50,54 @@ public class Calculator
         return returnList;
     }
 
-    public static List<Vector2Int> CalcDamagePos(Vector2Int attackerPos, List<Vector2Int> attackPos)
+    public static List<Vector2Int> CalcEnemyPosition(List<Vector2Int> pos)
     {
-        List<Vector2Int> pos = new List<Vector2Int>();
-
-        for (int i = 0; i < attackPos.Count; i++)
+        List<Vector2Int> list = new List<Vector2Int>();
+        for (int i = 0; i < pos.Count; i++)
         {
-            int x = attackPos[i].x + (attackerPos.x - 1);
-            int y = attackPos[i].y + (attackerPos.y - 1);
-            if (x < 0 || x > 2 || y < 0 || y > 2)
-            {
-                continue;
-            }
-
-            pos.Add(new Vector2Int(x, y));
+            list.Add(CalcEnemyPosition(pos[i]));
         }
-        return pos;
+        return list;
     }
-    public static List<Vector2Int> CalcEffectPos(Vector2Int attackerPos, List<Vector2Int> attackPos, int attackAhead)
+    public static Vector2Int CalcEnemyPosition(Vector2Int pos)
     {
-        List<Vector2Int> pos = new List<Vector2Int>();
+        return new Vector2Int(pos.x + Length, pos.y);
+    }
 
+    /// <summary>
+    /// UŒ‚êŠ‚ÌŒvZ
+    /// </summary>
+    /// <param name="attackerPos">UŒ‚‚·‚é‘¤</param>
+    /// <param name="attackPos">UŒ‚‚ÌêŠ</param>
+    /// <param name="attackAhead">‰½ƒ}ƒXæ‚ÉUŒ‚‚·‚é‚©</param>
+    /// <returns>ŒvZ‚³‚ê‚½UŒ‚êŠ</returns>
+    public static Vector2Int CalcAttackPosition(Vector2Int attackerPos, Vector2Int attackPos, int attackAhead)
+    {
+        Vector2Int v2i = new Vector2Int(0, 0);
+
+        v2i.x = attackPos.x + attackerPos.x - 1 + attackAhead - Length;
+        v2i.y = attackPos.y + attackerPos.y - 1;
+
+        return v2i;
+    }
+    /// <summary>
+    /// UŒ‚êŠ‚ÌŒvZ(•¡”)
+    /// </summary>
+    /// <param name="attackerPos">UŒ‚‚·‚é‘¤</param>
+    /// <param name="attackPos">UŒ‚‚ÌêŠ</param>
+    /// <param name="attackAhead">‰½ƒ}ƒXæ‚ÉUŒ‚‚·‚é‚©</param>
+    /// <returns>ŒvZ‚³‚ê‚½UŒ‚êŠ</returns>
+    public static List<Vector2Int> CalcAttackPosition(Vector2Int attackerPos, List<Vector2Int> attackPos, int attackAhead)
+    {
+        List<Vector2Int> attackPositions = new List<Vector2Int>();
+        Debug.Log("UŒ‚‚·‚é‘¤‚ÌˆÊ’u" + attackerPos);
         for (int i = 0; i < attackPos.Count; i++)
         {
-            int y = attackPos[i].x + (attackerPos.x + attackAhead - 1);
-            int x = attackPos[i].y + (attackerPos.y +  - 1);
-            if (x < 0 || x > 2 || y < 0 || y > 6)
-            {
-                continue;
-            }
-
-            pos.Add(new Vector2Int(x, y));
+            Vector2Int v2i = CalcAttackPosition(attackerPos, attackPos[i], attackAhead);
+            if (!(v2i.x < Length && v2i.x > -1 && v2i.y < Length && v2i.y > -1)) continue;
+            attackPositions.Add(v2i);
+            Debug.Log("ƒ_ƒ[ƒWˆÊ’u" + v2i);
         }
-        return pos;
+        return attackPositions;
     }
 }

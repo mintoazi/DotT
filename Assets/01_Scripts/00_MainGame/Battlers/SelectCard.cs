@@ -19,7 +19,7 @@ public class SelectCard : MonoBehaviour
     {
         if (selectedPosition == null) return;
         selectedCard = card;
-        card.transform.SetParent(selectedCardParent);
+        card.transform.SetParent(selectedCardParent, false);
         card.transform.position = selectedPosition.position;
         card.SetScale(true);
     }

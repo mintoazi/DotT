@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,7 +18,6 @@ public class BattlerUI : MonoBehaviour
     [SerializeField] private Sprite[] battlerSprite;
 
     [SerializeField] private Text hpText;
-
 
     public void UpdateCharaType(int charaType)
     {
@@ -45,6 +42,23 @@ public class BattlerUI : MonoBehaviour
 
     public void UpdateHP(int hp)
     {
+        if (int.Parse(hpText.text) > hp) ShakeChara(0.3f, 20).Forget();
         hpText.text = hp.ToString();
+    }
+
+    private async UniTask ShakeChara(float duration, float magnitude)
+    {
+        Vector3 oldPos = battlerSkin.rectTransform.localPosition;
+        float time = duration;
+        Vector3 shake = new Vector3();
+        while (time > 0)
+        {
+            time -= Time.deltaTime;
+            shake.x = Random.Range(-magnitude, magnitude);
+            shake.y = Random.Range(-magnitude, magnitude);
+            battlerSkin.rectTransform.localPosition = oldPos + shake;
+            await UniTask.DelayFrame(1);
+        }
+        battlerSkin.rectTransform.localPosition = oldPos;
     }
 }

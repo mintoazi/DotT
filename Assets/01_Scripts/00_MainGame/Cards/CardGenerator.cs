@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
+using System.Threading;
 
 public class Element
 {
@@ -13,6 +15,8 @@ public class Element
 
 public class CardGenerator : MonoBehaviour
 {
+    public static bool IsLoadingCSV = false;
+
     [SerializeField] private Card cardPrefab;
 
     [SerializeField] private List<string[]> cardInfoData = new List<string[]>();
@@ -33,9 +37,9 @@ public class CardGenerator : MonoBehaviour
     {
         //ロケート
         Locator<CardGenerator>.Bind(this);
-
+        IsLoadingCSV = true;
         // カードの読み込み
-        cardInfoData = CSVLoader.Load(cardInfoCSV);
+        cardInfoData = CSVLoader.Load(cardInfoCSV, isFirstLine: false);
         for (int i = 0; i < cardInfoData.Count; i++)
         {
             int id = int.Parse(cardInfoData[i][(int)Num.Id]);
@@ -69,6 +73,7 @@ public class CardGenerator : MonoBehaviour
                     )
                 );
         }
+        IsLoadingCSV = false;
         List<Vector2Int> ReturnAttackPos(int[] posData)
         {
             List<Vector2Int> attackPos = new List<Vector2Int>();

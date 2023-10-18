@@ -82,7 +82,7 @@ public class Battler : MonoBehaviour
     public void SetCardToHand(Card card)
     {
         hand.Add(card);
-        card.OnClickCard = SelectedCard;
+        //card.OnClickCard = SelectedCard;
     }
     // カードを引く
     public void Draw(Card card)
@@ -146,33 +146,33 @@ public class Battler : MonoBehaviour
             
             foreach (Card c in cards)
             {
-                Debug.Log(c.Base.Cost);
+                //Debug.Log(c.Base.Cost);
                 if (!_isCostUses[c.Base.Cost].Value) return true; // 使えるカードが見つかったら処理を抜ける
             }
             return false;
         }
     }
 
-    /// <summary>
-    /// 属性を変更する
-    /// </summary>
-    public async UniTask<int> ChangeType()
-    {
-        SetActivePanel(target: changeTypePanel, isActive: true);
-        selectCard.SelectedPosition = changeTypePos.transform;
+    ///// <summary>
+    ///// 属性を変更する
+    ///// </summary>
+    //public async UniTask<int> ChangeType()
+    //{
+    //    SetActivePanel(target: changeTypePanel, isActive: true);
+    //    selectCard.SelectedPosition = changeTypePos.transform;
 
-        while(selectCard.SelectedCard == null)
-        {
-            await UniTask.DelayFrame(1);
-        }
+    //    while(selectCard.SelectedCard == null)
+    //    {
+    //        await UniTask.DelayFrame(1);
+    //    }
 
-        var buttonEvent = changeTypeSubmitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
-        await buttonEvent.OnInvokeAsync();
-        RecentCard = selectCard.SelectedCard;
-        ChangeType((int)selectCard.SelectedCard.Base.Type);
-        SetActivePanel(target: changeTypePanel, isActive: false);
-        return (int)selectCard.SelectedCard.Base.Type;
-    }
+    //    var buttonEvent = changeTypeSubmitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
+    //    await buttonEvent.OnInvokeAsync();
+    //    RecentCard = selectCard.SelectedCard;
+    //    ChangeType((int)selectCard.SelectedCard.Base.Type);
+    //    SetActivePanel(target: changeTypePanel, isActive: false);
+    //    return (int)selectCard.SelectedCard.Base.Type;
+    //}
     
     /// <summary>
     /// カードを使用させる
@@ -195,6 +195,7 @@ public class Battler : MonoBehaviour
         }
 
         // 自分の処理
+        ChangeType((int)selectCard.SelectedCard.Base.Type);
         _isCostUses[selectCard.SelectedCard.Base.Cost].Value = true;
         RecentCard = selectCard.SelectedCard;
 
@@ -213,9 +214,16 @@ public class Battler : MonoBehaviour
     public void Damage(List<Vector2Int> attackPos, int damage)
     {
         Debug.Log("ダメージを受ける側の現在地" + battlerMove.PiecePos);
-        attackPos = Calculator.CalcReflection(attackPos);
+
         for (int i = 0; i < attackPos.Count; i++)
         {
+            Debug.Log("ダメージを受ける地点k" + attackPos[i]);
+        }
+        attackPos = Calculator.CalcReflection(attackPos);
+        
+        for (int i = 0; i < attackPos.Count; i++)
+        {
+            Debug.Log("ダメージを受ける地点" + attackPos[i]);
             if (battlerMove.PiecePos == attackPos[i])
             {
                 _health.Value -= damage;
@@ -248,7 +256,8 @@ public class Battler : MonoBehaviour
     public void PlayCard(int id)
     {
         hand.Remove();
-        int cost = Locator<CardGenerator>.Instance.CardBases[id].Cost;
-        _isCostUses[cost].Value = true;
+        CardBase cardBase = Locator<CardGenerator>.Instance.CardBases[id];
+        _currentType.Value = (int)cardBase.Type;
+        _isCostUses[cardBase.Cost].Value = true;
     }
 }

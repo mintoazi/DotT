@@ -400,9 +400,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1366185610}
-  - component: {fileID: 1366185609}
   - component: {fileID: 1366185611}
-  - component: {fileID: 1366185612}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -410,21 +408,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1366185609
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1366185608}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc952ab574701714ca863e26293c1844, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cardPrefab: {fileID: 6900029862137506438, guid: 52e5ed179567bf543983da62fd16b0c7,
-    type: 3}
-  cardInfoCSV: {fileID: 4900000, guid: 082dfe2e5bc7e0a46a4dd15366a11713, type: 3}
 --- !u!4 &1366185610
 Transform:
   m_ObjectHideFlags: 0
@@ -447,29 +430,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1366185608}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 333eba4b69146614eab58958ef330753, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  id: 0
-  cg: {fileID: 0}
-  myPos: {x: 0, y: 0}
---- !u!114 &1366185612
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1366185608}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 840f4c914d7160e429bc07b0feea9cbf, type: 3}
+  m_Script: {fileID: 11500000, guid: 4633749079c2c1b43b0bacf05580ee03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  generateGame: {fileID: 0}
-  effects: []
-  matchEffects: []
+  a: 01000000000000
+  b: 00000000000000
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

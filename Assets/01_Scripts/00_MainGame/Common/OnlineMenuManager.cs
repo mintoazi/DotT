@@ -50,6 +50,7 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
+
         //Updateˆ—‚Ì’Ç‰Á
         this.UpdateAsObservable()
         .Subscribe(
