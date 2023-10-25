@@ -32,9 +32,9 @@ public class BattlerHand : MonoBehaviour
     }
 
     // ƒJ[ƒh‚ð•À‚Ñ‘Ö‚¦‚é
-    private void ResetPositions()
+    public void ResetPositions()
     {
-        Hands.Sort((card0, card1) => card0.Base.Id - card1.Base.Id);
+        //Hands.Sort((card0, card1) => card0.Base.Id - card1.Base.Id);
         for (int i = 0; i < Hands.Count; i++) 
         {
             hands[i].SetLayer(i);

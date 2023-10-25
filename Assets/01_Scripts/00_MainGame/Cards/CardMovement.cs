@@ -24,7 +24,7 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
         if (isMove) return;
         if (IsHand) handPosition = transform.position;
         Debug.Log(transform.position);
-        defaultParent = transform.parent;
+        defaultParent = transform;// .parent
         transform.SetParent(defaultParent.parent, false);
         if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
         canvasGroup.blocksRaycasts = false;
@@ -51,7 +51,9 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
         isMove = true;
         while(time < moveTime)
         {
-            if(isSelect)
+            time += Time.deltaTime;
+            if (time > moveTime) time = moveTime;
+            if (isSelect)
             {
                 transform.localScale = Vector3.Lerp(startSize, selectCardSize, time / moveTime);
                 transform.position = Vector3.Lerp(startPos, trans.position, time / moveTime);
@@ -61,7 +63,6 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
                 transform.localScale = Vector3.Lerp(startSize, Vector3.one, time / moveTime);
                 transform.position = Vector3.Lerp(startPos, handPosition, time / moveTime);
             }
-            time += Time.deltaTime;
             await UniTask.DelayFrame(1);
         }
         isMove = false;

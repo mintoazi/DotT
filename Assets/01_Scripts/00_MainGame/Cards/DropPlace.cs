@@ -7,23 +7,32 @@ public class DropPlace : MonoBehaviour, IDropHandler
 {
     [SerializeField] private bool isSelected = false;
     [SerializeField] private Transform selectedPosition;
+    CardMovement lastCard;
     public void OnDrop(PointerEventData eventData)
     {
-        CardMovement card = eventData.pointerDrag.GetComponent<CardMovement>();
-        if (card != null)
+        lastCard = eventData.pointerDrag.GetComponent<CardMovement>();
+        if (lastCard != null)
         {
-            card.defaultParent = this.transform;
+            //card.defaultParent = this.transform;
 
             if (isSelected)
             {
-                card.MoveToSelect(selectedPosition, isSelected).Forget();
-                card.IsHand = false;
+                lastCard.MoveToSelect(selectedPosition, isSelected).Forget();
+                lastCard.IsHand = false;
             }
             else
             {
-                card.MoveToSelect(card.defaultParent, isSelected).Forget();
-                card.IsHand = true;
+                lastCard.MoveToSelect(lastCard.defaultParent, isSelected).Forget();
+                lastCard.IsHand = true;
             }
         }
+        lastCard = null;
+    }
+
+    public void ClickOther()
+    {
+        if (lastCard == null) return;
+        lastCard.MoveToSelect(lastCard.defaultParent, isSelected).Forget();
+        lastCard.IsHand = true;
     }
 }
