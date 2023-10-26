@@ -119,11 +119,12 @@ public class CardGenerator : MonoBehaviour
     {
         int rand = UnityEngine.Random.Range(0, cards);
         Card card = Instantiate(cardPrefab);
+
         card.Set(CardBases[rand], isEnemy);
         return card;
     }
 
-    public Card DrawMethod(List<int> ids, bool isEnemy)
+    public Card DrawMethod(List<int> ids , bool isEnemy)
     {
         int rand = UnityEngine.Random.Range(0, ids.Count);
         Card card = Instantiate(cardPrefab);

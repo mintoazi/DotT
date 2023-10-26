@@ -240,7 +240,7 @@ public class Battler : MonoBehaviour
 
     public void RemoveCard(int id)
     {
-        hand.Remove();
+        hand.Remove(id);
     }
 
     private void SetActivePanel(GameObject target, bool isActive)
@@ -255,9 +255,30 @@ public class Battler : MonoBehaviour
     }
     public void PlayCard(int id)
     {
-        hand.Remove();
-        CardBase cardBase = Locator<CardGenerator>.Instance.CardBases[id];
-        _currentType.Value = (int)cardBase.Type;
-        _isCostUses[cardBase.Cost].Value = true;
+        Card card = hand.Remove(id);
+        //_currentType.Value = (int)cardBase.Type;
+        //Cardの移動
+        SelectedPosition(card).Forget();
+        _isCostUses[card.Base.Cost].Value = true;
+    }
+
+    [SerializeField] GameObject selectedPosition = null;
+    /// <summary>
+    /// 選択カードの移動
+    /// </summary>
+    /// <param name="card"></param>
+    /// <returns></returns>
+    private async UniTask SelectedPosition(Card card)
+    {
+        float time = 0;
+        float moveTime = 0.2f;
+        Vector3 startPos = card.transform.position;
+        while(time < moveTime)
+        {
+            time += Time.deltaTime;
+            if (time > moveTime) time = moveTime; 
+            card.transform.position = Vector3.Lerp(startPos, selectedPosition.transform.position, time / moveTime);
+            await UniTask.DelayFrame(1);
+        }
     }
 }

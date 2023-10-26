@@ -23,12 +23,12 @@ public class BattlerHand : MonoBehaviour
         Hands.Remove(card);
         ResetPositions();
     }
-    public void Remove()
+    public Card Remove(int id)
     {
-        Card c = Hands[0];
-        Hands.RemoveAt(0);
-        Destroy(c.gameObject);
+        Card card = hands.Find(x => x.Base.Id == id);
+        Remove(card);
         ResetPositions();
+        return card;
     }
 
     // ƒJ[ƒh‚ğ•À‚Ñ‘Ö‚¦‚é
