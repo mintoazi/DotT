@@ -20,6 +20,8 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private Battler currentBattler;
     private Battler waitBattler;
     private int turns = 0;
+    bool isEnemySubmited = false;
+    bool isEnemyAttacked = false;
 
     private Phase phase = Phase.Init;
     bool isPhase = false;
@@ -29,11 +31,11 @@ public class GameMaster : MonoBehaviourPunCallbacks
         Init,
         Draw,
         ReDraw,
-        PlayCard,
-        CheckTurn,
-        CoinTos,
+        PlayAttackCard,
+        CheckCard, // ここまで共通フェーズ
         Move,
         Attack,
+        PlaySupportCard,
         End,
         Win,
         Lose,
@@ -61,6 +63,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         if (CardGenerator.IsLoadingCSV) return;
 
         if (isPhase) return;
+        /*
         switch (phase)
         {
             case Phase.Init:
@@ -110,50 +113,53 @@ public class GameMaster : MonoBehaviourPunCallbacks
                 losePanel.SetActive(true);
                 isPhase = true;
                 break;
+        }*/
+        switch (phase)
+        {
+            case Phase.Init:
+                //Debug.Log("初期フェイズ");
+
+                break;
+            case Phase.Draw:
+                DrawPhase();
+                break;
+            case Phase.ReDraw:
+                // 出せるカードがなかったら一枚捨てて一枚ドロー
+                ReDrawPhase().Forget(); //=> PlayCard
+                break;
+            case Phase.PlayAttackCard:
+                // カード提出
+                PlayCardPhase().Forget();//=> CheckCard
+                break;
+            case Phase.CheckCard:
+                // カードのコスト比較
+                CheckTurnPhase().Forget();// => Move or Wait
+                break;
+            case Phase.Move:
+                // 先攻移動
+                MovePhase().Forget();
+                break;
+            case Phase.Attack:
+                // 先攻攻撃
+                AttackPhase().Forget();
+                break;
+            case Phase.PlaySupportCard:
+                //サポートカードのプレイ
+                Debug.Log("サポートフェイズ");
+                EndPhase().Forget();
+                break;
+            case Phase.Wait:
+                WaitPhase();
+                break;
+            case Phase.Win:
+                winPanel.SetActive(true);
+                isPhase = true;
+                break;
+            case Phase.Lose:
+                losePanel.SetActive(true);
+                isPhase = true;
+                break;
         }
-        //switch (phase)
-        //{
-        //    case Phase.Init:
-        //        //Debug.Log("初期フェイズ");
-        //        
-        //        break;
-        //    case Phase.ReDraw:
-        //        // 出せるカードがなかったら一枚捨てて一枚ドロー
-
-        //        break;
-        //    case Phase.PlayCard:
-        //        // カード提出
-
-        //        break;
-        //    case Phase.CheckCard:
-        //        // カードのコスト比較
-        //        currentPlayer = 先攻;
-        //        waitPlayer = 後攻;
-        //        break;
-        //    case Phase.Move:
-        //        // 先攻移動
-        //        currentPlayer.Move();
-        //        break;
-        //    case Phase.Attack:
-                  // 先攻攻撃
-        //        currentPlayer.Attack();
-        //        break;
-        //    case Phase.End:
-        //        Debug.Log("エンドフェイズ");
-        //        EndPhase().Forget();
-        //        break;
-        //    case Phase.Wait:
-        //        WaitPhase();
-        //        break;
-        //    case Phase.Win:
-        //        winPanel.SetActive(true);
-        //        isPhase = true;
-        //        break;
-        //    case Phase.Lose:
-        //        losePanel.SetActive(true);
-        //        isPhase = true;
-        //        break;
-        //}
     }
     private void InitPhase()
     {
@@ -187,29 +193,6 @@ public class GameMaster : MonoBehaviourPunCallbacks
         SetPhase(Phase.ReDraw);
     }
 
-    // ターンの設定
-    private void CoinTos()
-    {
-        if (!PhotonNetwork.IsMasterClient) return;
-        int rand = Random.Range(0, 1);
-        if (rand == 0) // hostのターン
-        {
-            currentBattler = player;
-            waitBattler = enemy;
-            SetPhase(Phase.Draw);
-            photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Wait);
-            photonView.RPC(nameof(SetBattler), RpcTarget.Others, rand);
-        }
-        else
-        {
-            currentBattler = enemy;
-            waitBattler = player;
-            SetPhase(Phase.Wait);
-            photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Draw);
-            photonView.RPC(nameof(SetBattler), RpcTarget.Others, rand);
-        }
-    }
-
     private bool CheckPlayer()
     {
         return currentBattler == enemy;
@@ -222,14 +205,13 @@ public class GameMaster : MonoBehaviourPunCallbacks
         isPhase = true;
 
         turns++;
-        currentBattler.IsWait = false;
-        //Debug.Log(currentBattler.gameObject.name);
+        player.IsWait = false; // カードを変なタイミングで選択できないように
 
         int currentCards = player.Hand.Hands.Count;
         for (int i = currentCards; i <= startCards; i++)
         {
-            Card card = Locator<CardGenerator>.Instance.Draw(CheckPlayer());
-            currentBattler.Draw(card);
+            Card card = Locator<CardGenerator>.Instance.Draw(false);
+            player.Draw(card);
             photonView.RPC(nameof(Draw), RpcTarget.Others, card.Base.Id);
         }
         SetPhase(Phase.ReDraw);
@@ -238,20 +220,20 @@ public class GameMaster : MonoBehaviourPunCallbacks
     {
         isPhase = true;
 
-        List<int> costs = await currentBattler.ReDraw();
+        List<int> costs = await player.ReDraw();
         if (costs == null)
         {
-            SetPhase(Phase.PlayCard);
+            SetPhase(Phase.PlayAttackCard);
             isPhase = false;
             return;
         }
         Card card = Locator<CardGenerator>.Instance.ReDraw(costs, CheckPlayer());
 
         photonView.RPC(nameof(ReDraw), RpcTarget.Others, card.Base.Id);
-        currentBattler.SetCardToHand(card);
+        player.SetCardToHand(card);
         selectCard.DeleteCard();
 
-        SetPhase(Phase.PlayCard);
+        SetPhase(Phase.PlayAttackCard);
     }
 
     private async UniTask PlayCardPhase()
@@ -262,13 +244,30 @@ public class GameMaster : MonoBehaviourPunCallbacks
         photonView.RPC(nameof(PlayCard), RpcTarget.Others, player.RecentCard.Base.Id);
         //selectCard.DeleteCard();
         
-        SetPhase(Phase.CheckTurn);
+        SetPhase(Phase.CheckCard);
     }
-    bool enemySubmitedCard = false;
+    
+    /// <summary>
+    /// 提出したカードのコストが低い順に移動
+    /// </summary>
+    /// <returns></returns>
     private async UniTask CheckTurnPhase()
     {
-        await UniTask.WaitUntil(() => enemySubmitedCard);
-        
+        await UniTask.WaitUntil(() => isEnemySubmited);
+        int pCost = player.RecentCard.Base.Cost;
+        int eCost = enemy.RecentCard.Base.Cost;
+        if (pCost == eCost)
+        {
+            // 引き分け処理
+        }
+        else if(pCost < eCost)
+        {
+            SetPhase(Phase.Move);
+        }
+        else
+        {
+            SetPhase(Phase.Wait);
+        }
     }
     private async UniTask MovePhase()
     {
@@ -325,12 +324,18 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
         await UniTask.Delay(500); // エフェクト終了待ち
         
-        //SetPhase(Phase.End);
+        SetPhase(Phase.Wait);
         CheckVictoryOrDefeat();
-        //if(isAttacked) SetPhase(Phase.End);
-        //else 敵のターン;
-    }
 
+        // 敵のターンの設定
+        if (isEnemyAttacked) photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.PlaySupportCard);
+        else photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Move);
+    }
+    private async UniTask PlaySupportPhase()
+    {
+        await player.PlayCard();
+
+    }
     private async UniTask EndPhase()
     {
         isPhase = true;
@@ -376,13 +381,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
     private void WaitPhase()
     {
-        waitBattler.IsWait = true;
+        player.IsWait = true;
     }
 
     [PunRPC]
     private void SetBattler(int coinTos)
     {
-
         if(coinTos == 0)
         {
             currentBattler = enemy;
@@ -394,7 +398,6 @@ public class GameMaster : MonoBehaviourPunCallbacks
             currentBattler = player;
             waitBattler = enemy;
         }
-        
     }
     [PunRPC]
     private void SetPhase(Phase phase)
@@ -432,6 +435,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private void PlayCard(int id)
     {
         enemy.PlayCard(id);
+        isEnemySubmited = true;
     }
     [PunRPC]
     private void Move(int pos)
