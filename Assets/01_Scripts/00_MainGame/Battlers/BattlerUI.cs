@@ -17,11 +17,19 @@ public class BattlerUI : MonoBehaviour
     [SerializeField] private Image battlerSkin;
     [SerializeField] private Sprite[] battlerSprite;
 
+    [SerializeField] private Image fieldSkin;
+    [SerializeField] private Sprite[] fieldSprite;
+
+    // ƒoƒt‚Ì•\Ž¦
+    [SerializeField] private Text[] buffText;
+    private enum Buffs { Attack, Defence, Cost }
+
     [SerializeField] private Text hpText;
 
     public void UpdateCharaType(int charaType)
     {
         battlerSkin.sprite = battlerSprite[charaType];
+        fieldSkin.sprite = fieldSprite[charaType];
         typeImage.sprite = typeSprite[charaType];
         for (int i = 0; i < costsImage.Length; i++)
         {
@@ -31,7 +39,7 @@ public class BattlerUI : MonoBehaviour
 
     public void UseCost(int cost, bool isUse)
     {
-        if (isUse) costsImage[cost].color = usedColor;
+        if (isUse) costsImage[cost].sprite = costsType[3];
         else return;
     }
 
@@ -45,6 +53,10 @@ public class BattlerUI : MonoBehaviour
         if (int.Parse(hpText.text) > hp) ShakeChara(0.3f, 20).Forget();
         hpText.text = hp.ToString();
     }
+
+    public void UpdateAttackBuff(int value) => buffText[(int)Buffs.Attack].text = value.ToString();
+    public void UpdateDefenceBuff(int value) => buffText[(int)Buffs.Defence].text = value.ToString();
+    public void UpdateCostBuff(int value) => buffText[(int)Buffs.Cost].text = value.ToString();
 
     private async UniTask ShakeChara(float duration, float magnitude)
     {

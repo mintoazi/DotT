@@ -17,16 +17,19 @@ public class SelectCard : MonoBehaviour
     // 自分の子要素にする・位置の変更
     public void Set(Card card)
     {
-        if (selectedPosition == null) return;
+        //if (selectedPosition == null) return;
         selectedCard = card;
-        card.transform.SetParent(selectedCardParent, false);
-        card.transform.position = selectedPosition.position;
-        card.SetScale(true);
+        //card.transform.SetParent(selectedCardParent, false);
+        //card.transform.position = selectedPosition.position;
+        //card.SetScale(true);
     }
 
     public void DeleteCard()
     {
-        Destroy(selectedCard.gameObject);
+        Debug.Log("カードが墓地に送られました");
+        if (selectedCard.gameObject == null) return;
+        DestroyImmediate(selectedCard.gameObject);
+        if (selectedCard == null) return;
         selectedCard = null;
     }
 }

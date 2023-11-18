@@ -10,8 +10,9 @@ public class CardBase
     
     [SerializeField] string description;
     [SerializeField] string sDescripiton;
+    [SerializeField] string supDescription;
     [SerializeField] int cost;
-    [SerializeField] CardType type;
+    [SerializeField] CardTypeM type;
 
     [SerializeField] int[] range;
     [SerializeField] int damage;
@@ -24,28 +25,30 @@ public class CardBase
     
 
     public string Name { get => name; }
-    public CardType Type { get => type; }
+    public CardTypeM Type { get => type; }
     public int Id { get => id; }
     public string Description { get => description; }
     public Sprite Icon { get => icon; }
     public int Cost { get => cost; }
-    public string SDescripiton { get => sDescripiton; }
+    public string SDescription { get => sDescripiton; }
+    public string SupDescription { get => supDescription; }
     public int Damage{ get => damage; }
     public int SDamage { get => sDamage; }
     public int AttackAhead { get => attackAhead; }
     public List<Vector2Int> AttackPos { get => attackPos; }
     public List<Vector2Int> SAttackPos { get => sAttackPos; }
     public CardBase(
-          int id, string name, string desc, string sDesc, int cost,
+          int id, string name, string desc, string sDesc, string supDesc, int cost,
           int attackAhead,
           List<Vector2Int> attackPos, int damage,
           List<Vector2Int> sAttackPos, int sDamage, 
-          CardType type) 
+          CardTypeM type) 
     { 
         this.id = id;
         this.name = name;
         this.description = desc;
         this.sDescripiton = sDesc;
+        this.supDescription = supDesc;
         this.cost = cost;
         this.attackAhead = attackAhead;
         this.type = type;
@@ -56,7 +59,7 @@ public class CardBase
     }
 }
 
-public enum CardType
+public enum CardTypeM
 {
     Curse, 
     Tech, 

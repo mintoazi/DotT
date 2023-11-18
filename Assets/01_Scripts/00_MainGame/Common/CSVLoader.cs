@@ -25,22 +25,22 @@ public static class CSVLoader
     }
 
 
-    public static void CreateCSV(TextAsset csv, string path)
-    {
+    //public static void CreateCSV(TextAsset csv, string path)
+    //{
         
-        using (File.Create(path)) ;
-        using (StreamWriter streamWriter = new StreamWriter(path, false, Encoding.UTF8))
-        {
-            //StringReader reader = new StringReader(stri);
-            List<string[]> defaultCsv = Load(csv, isFirstLine: true);
-            for (int i = 0; i < defaultCsv.Count; i++)
-            {
-                string s = string.Join(",", defaultCsv[i]);
-                streamWriter.WriteLine(string.Join(",", defaultCsv[i]));
-                Debug.Log(s);
-            }
-            streamWriter.Flush();
-            streamWriter.Close();
-        }
-    }
+    //    using (File.Create(path)) ;
+    //    using (StreamWriter streamWriter = new StreamWriter(path, false, Encoding.UTF8))
+    //    {
+    //        //StringReader reader = new StringReader(stri);
+    //        List<string[]> defaultCsv = Load(csv, isFirstLine: true);
+    //        for (int i = 0; i < defaultCsv.Count; i++)
+    //        {
+    //            string s = string.Join(",", defaultCsv[i]);
+    //            streamWriter.WriteLine(string.Join(",", defaultCsv[i]));
+    //            Debug.Log(s);
+    //        }
+    //        streamWriter.Flush();
+    //        streamWriter.Close();
+    //    }
+    //}
 }

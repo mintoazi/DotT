@@ -9,7 +9,9 @@ public class BattlerMove : MonoBehaviour
     private RaycastHit raycastHit;
     [SerializeField] private GameObject selectTile;
     [SerializeField] private Vector3 tileSpace;
-    
+    [SerializeField] private GameObject[] pieces = new GameObject[3];
+    [SerializeField] private Material[] materials;
+    private Renderer pieceRenderer;
     public Transform[,] TilePosition { get; set; }
     public Vector2Int PiecePos { get; private set; } // 現在のプレイヤー位置
 
@@ -18,7 +20,7 @@ public class BattlerMove : MonoBehaviour
 
     void Awake()
     {
-        Init();
+        //Init();
         //Update処理の登録
         this.UpdateAsObservable()
         .Subscribe(
@@ -26,9 +28,17 @@ public class BattlerMove : MonoBehaviour
         );
     }
 
-    public void Init()
+    public void Init(int type)
     {
+        GameObject g = Instantiate(pieces[type], transform);
         PiecePos = new Vector2Int(1, 1);
+        pieceRenderer = g.transform.GetChild(0).gameObject.GetComponent<Renderer>();
+        pieceRenderer.material = materials[type];
+    }
+
+    public void UpdatePieceType(int type)
+    {
+        pieceRenderer.material = materials[type];
     }
 
     public void SetPosition(Vector3 pos)

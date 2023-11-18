@@ -3,80 +3,36 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine.UI;
-using UniRx;
-using UnityEngine.Events;
-using Unity.VisualScripting;
 
 public class Battler : MonoBehaviour
 {
-    private const int COSTS = 7;
     [SerializeField] BattlerHand hand;
     [SerializeField] BattlerMove battlerMove;
+    [SerializeField] BattlerModel model;
     [SerializeField] SelectCard selectCard;
 
     public Card RecentCard { get; private set; }
 
-    // Panels
-    [SerializeField] GameObject reDrawPanel;
-    [SerializeField] GameObject changeTypePanel;
+    // Panel
     [SerializeField] GameObject playCardPanel;
-
-    // CardPosition
-    [SerializeField] Transform reDrawPos;
-    [SerializeField] Transform changeTypePos;
-    [SerializeField] Transform playCardPos;
+    [SerializeField] GameObject playSupportCardPanel;
 
     // Buttons
-    [SerializeField] Button reDrawSubmitButton;
-    [SerializeField] Button changeTypeSubmitButton;
-    [SerializeField] Button playCardSubmitButton;
+    [SerializeField] Button submitButton;
 
     public bool IsTurn { get; set; }
     public bool IsSubmit { get; private set; }
     public bool IsWait { get; set; }
+    public bool CanUseSupport { get; private set; }
+    public bool IsMatchCharaType { get; private set; }
+    public bool OldIsMatchCharaType { get; private set; }
     public BattlerHand Hand { get => hand; }
     public BattlerMove BattlerMove { get => battlerMove; }
+    public BattlerModel Model { get => model; }
+    public SelectCard SelectCard { get => selectCard; }
+
+    int turnType = 0;
     // public UnityAction OnSubmitAction;
-
-    //HP
-    public IReadOnlyReactiveProperty<int> Health => _health;
-    private readonly IntReactiveProperty _health = new IntReactiveProperty(20);
-
-    //Cost
-    public IReadOnlyReactiveProperty<bool>[] IsCostUses => _isCostUses;
-    private readonly BoolReactiveProperty[] _isCostUses = new BoolReactiveProperty[COSTS];
-
-    //現在の属性
-    public IReadOnlyReactiveProperty<int> CurrentType => _currentType;
-    public readonly IntReactiveProperty _currentType = new IntReactiveProperty(0);
-
-    //キャラの種類
-    public IReadOnlyReactiveProperty<int> CharaType => _charaType;
-    private readonly IntReactiveProperty _charaType = new IntReactiveProperty(0);
-    private void OnDestroy()
-    {
-        _health.Dispose();
-        _currentType.Dispose();
-        _charaType.Dispose();
-        for (int i = 0; i < _isCostUses.Length; i++)
-        {
-            _isCostUses[i].Dispose();
-        }
-    }
-    private void Awake()
-    {
-        for (int i = 0; i < COSTS; i++)
-        {
-            _isCostUses[i] = new BoolReactiveProperty();
-            _isCostUses[i].Value = false;
-        }
-    }
-    public void Init(int health, int type)
-    {
-        _health.Value = health;
-        _currentType.Value = type;
-        _charaType.Value = type;
-    }
 
     // カードが配られる
     public void SetCardToHand(Card card)
@@ -94,16 +50,12 @@ public class Battler : MonoBehaviour
         SetCardToHand(Locator<CardGenerator>.Instance.ChoiceDraw(id, true));
     }
 
-    private void SelectedCard(Card card)
+    public void SelectedCard(Card card)
     {
         if (IsSubmit || IsWait) return;
-        // すでにセットしていればセットしていたカードを手札に戻す
-        if(selectCard.SelectedCard) 
-        {
-            hand.Add(selectCard.SelectedCard);
-        }
-        RemoveCard(card);
-        selectCard.Set(card);
+        if(card != null) Locator<GameMaster>.Instance.ActiveAttackTiles(card);
+        SelectCard.Set(card);
+        //Debug.Log(SelectCard.SelectedCard.name + "が選択された！");
     }
 
     /// <summary>
@@ -114,31 +66,21 @@ public class Battler : MonoBehaviour
         // 使えるカードがあるかチェックする
         bool isReDraw = CheckCanUseCard();
         if (isReDraw) return null;
-        // 空いてるコストを調べる
-        List<int> costs = new List<int>();
-        for (int i = 0; i < _isCostUses.Length; i++)
-        {
-            if (!_isCostUses[i].Value)
-            {
-                costs.Add(i);
-                Debug.Log(i);
-            }
-        }
-
+        
         // パネルの表示
-        SetActivePanel(target: reDrawPanel, isActive: true);
-        selectCard.SelectedPosition = reDrawPos.transform;
+        SetActivePanel(target: playCardPanel, isActive: true);
+        //selectCard.SelectedPosition = reDrawPos.transform;
 
-        while (selectCard.SelectedCard == null)
+        while (SelectCard.SelectedCard == null)
         {
             await UniTask.DelayFrame(1);
         }
 
-        var buttonEvent = reDrawSubmitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
+        var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
         await buttonEvent.OnInvokeAsync();
-        SetActivePanel(target: reDrawPanel, isActive: false);
-        
-        return costs;
+        SetActivePanel(target: playCardPanel, isActive: false);
+        SelectCard.DeleteCard();
+        return Model.ReturnNotUseCost();
 
         bool CheckCanUseCard()
         {
@@ -147,32 +89,15 @@ public class Battler : MonoBehaviour
             foreach (Card c in cards)
             {
                 //Debug.Log(c.Base.Cost);
-                if (!_isCostUses[c.Base.Cost].Value) return true; // 使えるカードが見つかったら処理を抜ける
+                if (!Model.IsCostUses[c.Base.Cost].Value)
+                {
+                    Debug.Log("使用できるコスト" + c.Base.Cost);
+                    return true; // 使えるカードが見つかったら処理を抜ける
+                }
             }
             return false;
         }
     }
-
-    ///// <summary>
-    ///// 属性を変更する
-    ///// </summary>
-    //public async UniTask<int> ChangeType()
-    //{
-    //    SetActivePanel(target: changeTypePanel, isActive: true);
-    //    selectCard.SelectedPosition = changeTypePos.transform;
-
-    //    while(selectCard.SelectedCard == null)
-    //    {
-    //        await UniTask.DelayFrame(1);
-    //    }
-
-    //    var buttonEvent = changeTypeSubmitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
-    //    await buttonEvent.OnInvokeAsync();
-    //    RecentCard = selectCard.SelectedCard;
-    //    ChangeType((int)selectCard.SelectedCard.Base.Type);
-    //    SetActivePanel(target: changeTypePanel, isActive: false);
-    //    return (int)selectCard.SelectedCard.Base.Type;
-    //}
     
     /// <summary>
     /// カードを使用させる
@@ -180,26 +105,56 @@ public class Battler : MonoBehaviour
     public async UniTask PlayCard()
     {
         SetActivePanel(target:playCardPanel, isActive: true);
-        selectCard.SelectedPosition = playCardPos.transform;
+        //selectCard.SelectedPosition = playCardPos.transform;
+        turnType = Model.CurrentType.Value;
+        while (true)
+        {
+            var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
+            await buttonEvent.OnInvokeAsync();
+            bool isNull = selectCard.SelectedCard == null;
+            if (isNull) continue;
+            bool costCheck = !Model.IsCostUses[SelectCard.SelectedCard.Base.Cost].Value;
+            if (costCheck) break;
+        }
+        Locator<GenerateGame>.Instance.DeactiveAttackRangeTiles();
+        //model.UseCards++; // そのターンに使用したカードを追加
+        RecentCard = SelectCard.SelectedCard; // 使用したカードを代入
+        OldIsMatchCharaType = IsMatchCharaType;
+        IsMatchCharaType = ((int)RecentCard.Base.Type == model.CharaType.Value); // キャラタイプとカードタイプが合ってるかどうか
+        CanUseSupport = ((int)RecentCard.Base.Type == turnType); // サポートカードを使えるかどうか
+        //Debug.Log("サポートカードの有効" + CanUseSupport);
+        //Debug.Log("強化カードの有効" + IsMatchCharaType);
+        RemoveCard(SelectCard.SelectedCard);
 
-        while (selectCard.SelectedCard == null)
+        SetActivePanel(target: playCardPanel, isActive: false);
+    }
+
+    // PlayCardと同じ処理だからここを何とかしたい
+    public async UniTask PlaySupport()
+    {
+        SetActivePanel(target: playSupportCardPanel, isActive: true);
+
+        while (SelectCard.SelectedCard == null)
         {
             await UniTask.DelayFrame(1);
         }
 
-        while(true)
-        {
-            var buttonEvent = playCardSubmitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
-            await buttonEvent.OnInvokeAsync();
-            if (!_isCostUses[selectCard.SelectedCard.Base.Cost].Value) break;
-        }
+        //while (true)
+        //{
+        //    var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
+        //    await buttonEvent.OnInvokeAsync();
+        //    break;
+        //}
 
-        // 自分の処理
-        ChangeType((int)selectCard.SelectedCard.Base.Type);
-        _isCostUses[selectCard.SelectedCard.Base.Cost].Value = true;
-        RecentCard = selectCard.SelectedCard;
-
-        SetActivePanel(target: playCardPanel, isActive: false);
+        
+        RecentCard = SelectCard.SelectedCard;
+        CanUseSupport = ((int)RecentCard.Base.Type == turnType);
+        if (hand.Hands.Count == 0) CanUseSupport = false;
+        if (IsMatchCharaType) model.AddBuff();
+        Debug.Log("サポートカードの有効" + CanUseSupport);
+        Model.UseSupportCard(RecentCard.Base.Cost + 1); // ここを追加しただけ
+        RemoveCard(SelectCard.SelectedCard);
+        SetActivePanel(target: playSupportCardPanel, isActive: false);
     }
 
     /// <summary>
@@ -208,30 +163,38 @@ public class Battler : MonoBehaviour
     /// <returns>移動先</returns>
     public async UniTask<Vector2Int> Move()
     {
-        return await BattlerMove.Move();
+        var moved = await BattlerMove.Move();
+        SelectCard.DeleteCard();
+        return moved;
     }
 
     public void Damage(List<Vector2Int> attackPos, int damage)
     {
-        Debug.Log("ダメージを受ける側の現在地" + battlerMove.PiecePos);
+        //Debug.Log("ダメージを受ける側の現在地" + battlerMove.PiecePos);
 
         for (int i = 0; i < attackPos.Count; i++)
         {
-            Debug.Log("ダメージを受ける地点k" + attackPos[i]);
+            //Debug.Log("ダメージを受ける地点k" + attackPos[i]);
         }
         attackPos = Calculator.CalcReflection(attackPos);
         
         for (int i = 0; i < attackPos.Count; i++)
         {
-            Debug.Log("ダメージを受ける地点" + attackPos[i]);
+            //Debug.Log("ダメージを受ける地点" + attackPos[i]);
             if (battlerMove.PiecePos == attackPos[i])
             {
-                _health.Value -= damage;
+                Model.Damage(damage);
+                //Debug.Log(damage + "ダメージ。");
             }
         }
     }
 
-   
+   public void Attack()
+    {
+        model.UseCost(RecentCard.Base.Cost);
+        battlerMove.UpdatePieceType((int)RecentCard.Base.Type);
+        Model.ChangeType((int)RecentCard.Base.Type);
+    }
 
     private void RemoveCard(Card card)
     {
@@ -249,17 +212,20 @@ public class Battler : MonoBehaviour
         IsSubmit = !isActive;
     }
 
-    public void ChangeType(int type)
-    {
-        _currentType.Value = type;
-    }
     public void PlayCard(int id)
     {
         Card card = hand.Remove(id);
-        //_currentType.Value = (int)cardBase.Type;
-        //Cardの移動
         SelectedPosition(card).Forget();
-        _isCostUses[card.Base.Cost].Value = true;
+        SelectCard.Set(card);
+        RecentCard = SelectCard.SelectedCard;
+    }
+    public void PlaySupportCard(int id)
+    {
+        Card card = hand.Remove(id);
+        SelectedPosition(card).Forget();
+        SelectCard.Set(card);
+        RecentCard = SelectCard.SelectedCard;
+        Model.UseSupportCard(RecentCard.Base.Cost + 1);
     }
 
     [SerializeField] GameObject selectedPosition = null;
@@ -272,6 +238,9 @@ public class Battler : MonoBehaviour
     {
         float time = 0;
         float moveTime = 0.2f;
+        //Debug.Log(card);
+        //Debug.Log(card.transform.position);
+        if (card == null) return;
         Vector3 startPos = card.transform.position;
         while(time < moveTime)
         {

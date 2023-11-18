@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
 
 public class BattlerHand : MonoBehaviour
 {
@@ -21,11 +22,12 @@ public class BattlerHand : MonoBehaviour
     public void Remove(Card card)
     {
         Hands.Remove(card);
-        ResetPositions();
+        //ResetPositions();
     }
     public Card Remove(int id)
     {
         Card card = hands.Find(x => x.Base.Id == id);
+        if (card == null) Debug.Log("aaa" + id);
         Remove(card);
         ResetPositions();
         return card;

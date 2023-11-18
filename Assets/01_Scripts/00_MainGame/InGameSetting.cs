@@ -23,4 +23,9 @@ public class InGameSetting : MonoBehaviour
     {
         settingPanel.SetActive(false);
     }
+
+    public void OnClickSetting()
+    {
+        settingPanel.SetActive(true);
+    }
 }

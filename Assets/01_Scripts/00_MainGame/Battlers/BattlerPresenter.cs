@@ -3,7 +3,7 @@ using UniRx;
 
 public sealed class BattlerPresenter : MonoBehaviour
 {
-    [SerializeField] private Battler model;
+    [SerializeField] private BattlerModel model;
     [SerializeField] private BattlerUI view;
 
     private void Start()
@@ -42,6 +42,24 @@ public sealed class BattlerPresenter : MonoBehaviour
             {
                 // View‚É”½‰f
                 view.UpdateCharaType(x);
+            }).AddTo(this);
+
+        model.AttackBuff
+            .Subscribe(x =>
+            {
+                view.UpdateAttackBuff(x);
+            }).AddTo(this);
+
+        model.DefenceBuff
+            .Subscribe(x =>
+            {
+                view.UpdateDefenceBuff(x);
+            }).AddTo(this);
+
+        model.CostBuff
+            .Subscribe(x =>
+            {
+                view.UpdateCostBuff(x);
             }).AddTo(this);
     }
 }

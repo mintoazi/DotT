@@ -5,34 +5,47 @@ using UnityEngine.EventSystems;
 
 public class DropPlace : MonoBehaviour, IDropHandler
 {
-    [SerializeField] private bool isSelected = false;
+    [SerializeField] private bool isSelected = false; // 提出先か
     [SerializeField] private Transform selectedPosition;
-    CardMovement lastCard;
+    [SerializeField] private Battler player;
+    CardMovement selectedCard;
+
+    //カードをドラッグした時
     public void OnDrop(PointerEventData eventData)
     {
-        lastCard = eventData.pointerDrag.GetComponent<CardMovement>();
-        if (lastCard != null)
-        {
-            //card.defaultParent = this.transform;
+        if (selectedCard != null) CardToHand();
+        //選択されたカード
+        selectedCard = eventData.pointerDrag.GetComponent<CardMovement>();
 
-            if (isSelected)
-            {
-                lastCard.MoveToSelect(selectedPosition, isSelected).Forget();
-                lastCard.IsHand = false;
-            }
-            else
-            {
-                lastCard.MoveToSelect(lastCard.defaultParent, isSelected).Forget();
-                lastCard.IsHand = true;
-            }
+        //選択されたカードが存在する場合
+        if (selectedCard != null)
+        {
+            if (isSelected) CardToSelect(); 
+            else CardToHand();
         }
-        lastCard = null;
+    }
+
+    // カードを選択状態にする
+    private void CardToSelect()
+    {
+        selectedCard.MoveToSelect(selectedPosition, isSelected).Forget();
+        selectedCard.IsHand = false;
+        player.SelectedCard(selectedCard.MyCard);
+        //Debug.Log("カードがフィールドに出た！");
+    }
+    // カードを手札に戻す
+    private void CardToHand()
+    {
+        selectedCard.MoveToSelect(selectedCard.defaultParent, false).Forget();
+        selectedCard.IsHand = true;
+        selectedCard = null;
+        player.SelectedCard(null);
+        //Debug.Log("カードが手札に戻った！");
     }
 
     public void ClickOther()
     {
-        if (lastCard == null) return;
-        lastCard.MoveToSelect(lastCard.defaultParent, isSelected).Forget();
-        lastCard.IsHand = true;
+        if (selectedCard == null) return;
+        //CardToHand();
     }
 }

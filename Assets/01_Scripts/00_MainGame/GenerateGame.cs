@@ -1,4 +1,7 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 public class GenerateGame : MonoBehaviour
 {
@@ -25,10 +28,12 @@ public class GenerateGame : MonoBehaviour
 
     [SerializeField] private GameObject tilePrefab;
     [SerializeField] private GameObject canMoveTilePrefab;
+    [SerializeField] private GameObject attackRangeTilePrefab;
     [SerializeField] private Vector3 tileSize;
     [SerializeField] private Battler player;
     [SerializeField] private Battler enemy;
     private GameObject[,] canMoveTiles = new GameObject[6, 3];
+    private GameObject[,] attackRangeTiles = new GameObject[6, 3];
     private GameObject[,] tiles = new GameObject[6,3];
     private enum BattlerNum
     {
@@ -47,7 +52,8 @@ public class GenerateGame : MonoBehaviour
     };
 
     public GameObject[,] Tiles { get => tiles; }
-
+    private void Awake() => Locator<GenerateGame>.Bind(this);
+    private void OnDestroy() => Locator<GenerateGame>.Unbind(this);
     // タイルの生成
     public void GenerateTiles()
     {
@@ -57,6 +63,7 @@ public class GenerateGame : MonoBehaviour
             {
                 canMoveTiles[i, j] = Instantiate(canMoveTilePrefab, transform);
                 Tiles[i, j] = Instantiate(tilePrefab, transform);
+                attackRangeTiles[i,j] = Instantiate(attackRangeTilePrefab, transform);
                 // タイルを生成
                 float x = tileSize.x * j;
                 float y = tileSize.z * i;
@@ -66,7 +73,7 @@ public class GenerateGame : MonoBehaviour
                 Tiles[i, j].transform.localPosition = pos;
                 pos.y += 0.01f;
                 canMoveTiles[i, j].transform.localPosition = pos;
-
+                attackRangeTiles[i, j].transform.localPosition = pos;
                 if (tilesData[i, j] == 1) player.BattlerMove.SetPosition(pos);
                 else if(tilesData[i, j] == 2) enemy.BattlerMove.SetPosition(pos);
             }
@@ -95,12 +102,33 @@ public class GenerateGame : MonoBehaviour
         int x = pos.x;
         int y = pos.y;
         //Debug.Log(pos);
+        canMoveTiles[x, y].SetActive(true);
         if (x < Tiles.GetLength(1) - 1) canMoveTiles[x + 1, y].SetActive(true);
         if (x > 0) canMoveTiles[x - 1, y].SetActive(true);
         if (y < Tiles.GetLength(1) - 1) canMoveTiles[x, y + 1].SetActive(true);
         if (y > 0) canMoveTiles[x, y - 1].SetActive(true);
     }
 
+    public void ActiveAttackRangeTiles(List<Vector2Int> v2i)
+    {
+        DeactiveAttackRangeTiles();
+        for (int i = 0; i < v2i.Count; i++)
+        {
+            int x = v2i[i].x;
+            int y = v2i[i].y;
+            attackRangeTiles[x, y].SetActive(true);
+        }
+    }
+    public void DeactiveAttackRangeTiles()
+    {
+        for (int i = 0; i < attackRangeTiles.GetLength(0); i++)
+        {
+            for (int j = 0; j < attackRangeTiles.GetLength(1); j++)
+            {
+                attackRangeTiles[i, j].SetActive(false);
+            }
+        }
+    }
     public void DeactiveMoveTiles()
     {
         for (int i = 0; i < Tiles.GetLength(0); i++)

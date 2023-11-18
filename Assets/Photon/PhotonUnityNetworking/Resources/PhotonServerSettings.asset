@@ -55,6 +55,10 @@ MonoBehaviour:
   - Move
   - SetBattler
   - LoadScene
+  - PlaySupportCard
+  - UsedSupportCard
+  - EnemyChangeChara
+  - Heal
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

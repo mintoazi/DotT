@@ -27,11 +27,9 @@ public class CardGenerator : MonoBehaviour
 
     private enum Num
     {
-        Id, Name, Description, SDescription, Cost, EType, AttackAhead,
-        AttackRange = 7,
-        SAttackRange = 17,
-        Damage = 16,
-        SDamage = 26
+        Id, Name, Description, SDescription, SupportDescription, Cost, EType, AttackAhead,
+        Damage = 8,
+        AttackRange = 9
     }
     private void Awake()
     {
@@ -46,16 +44,16 @@ public class CardGenerator : MonoBehaviour
             string name = cardInfoData[i][(int)Num.Name];
             string desc = cardInfoData[i][(int)Num.Description];
             string sDesc = cardInfoData[i][(int)Num.SDescription];
+            string supDesc = cardInfoData[i][(int)Num.SupportDescription];
             int cost = int.Parse(cardInfoData[i][(int)Num.Cost]);
             int attackAhead = int.Parse(cardInfoData[i][(int)Num.AttackAhead]);
             int damage = int.Parse(cardInfoData[i][(int)Num.Damage]);
-            int sDamage = int.Parse(cardInfoData[i][(int)Num.SDamage]);
-            int[] attackRange = new int[9];
-            int[] sAttackRange = new int[9];
+            int sDamage = int.Parse(cardInfoData[i][(int)Num.Damage]);
+            int[] attackRange = new int[18];
+            //int[] sAttackRange = new int[9];
             for (int j = 0; j < attackRange.Length; j++)
             {
                 attackRange[j] = int.Parse(cardInfoData[i][(int)Num.AttackRange + j]);
-                sAttackRange[j] = int.Parse(cardInfoData[i][(int)Num.SAttackRange + j]);
             }
             CardBases.Add(
                 new CardBase(
@@ -63,11 +61,12 @@ public class CardGenerator : MonoBehaviour
                       name: name,
                       desc: desc,
                       sDesc: sDesc,
+                      supDesc: supDesc,
                       cost: cost,
                       attackAhead: attackAhead,
                       attackPos: ReturnAttackPos(attackRange),
                       damage: damage,
-                      sAttackPos: ReturnAttackPos(sAttackRange),
+                      sAttackPos: ReturnAttackPos(attackRange),
                       sDamage: sDamage,
                       ReturnEType(cardInfoData[i][(int)Num.EType])
                     )
@@ -87,11 +86,11 @@ public class CardGenerator : MonoBehaviour
 
             return attackPos;
         }
-        CardType ReturnEType(string type)
+        CardTypeM ReturnEType(string type)
         {
-            if (type == "Curse") return CardType.Curse;
-            else if (type == "Tech") return CardType.Tech;
-            else return CardType.Magic;
+            if (type == "Curse") return CardTypeM.Curse;
+            else if (type == "Tech") return CardTypeM.Tech;
+            else return CardTypeM.Magic;
             //else Debug.LogError("–¢’m‚ÌElementType‚Å‚·"); 
         }
     }

@@ -8,7 +8,8 @@ using UnityEngine.SceneManagement;
 public class OnlineMenuManager : MonoBehaviourPunCallbacks
 {
     public static int HostCharacter = 0;
-    public static int GuestCharacter = 1;
+    public static int GuestCharacter = 0;
+    private int myChara = 0;
     // ボタンを押したらマッチング開始
     // ルームIDでマッチング
     // なければ自分で作る
@@ -19,11 +20,45 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
 
     [SerializeField] private Text roomIdText;
     [SerializeField] private GameObject matchFailedWindow;
+
+    private void Start()
+    {
+        HostCharacter = 0;
+        GuestCharacter = 0;
+        //roomIdText.text = "111";
+        //OnMatchingButton();
+    }
     public void OnMatchingButton()
     {
         if (roomIdText.text == "") return;
         // PhotonServerSettingsの設定内容を使ってマスターサーバーへ接続する
         PhotonNetwork.ConnectUsingSettings();
+    }
+    public void OnStartButton()
+    {
+        if (isMatching) return;
+        if (!inRoom) return;
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            Debug.Log("あなたはホストではありません。");
+            return;
+        }
+        if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                HostCharacter = myChara;
+                photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, myChara);
+            }
+            else
+            {
+                GuestCharacter = myChara;
+                photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, myChara);
+            }
+            isMatching = true;
+            //Scene遷移
+            photonView.RPC(nameof(LoadScene), RpcTarget.AllViaServer);
+        }
     }
 
     // マスターサーバーへの接続が成功した時に呼ばれるコールバック
@@ -37,15 +72,11 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         inRoom = true;
-        // ランダムな座標に自身のアバター（ネットワークオブジェクト）を生成する
-        //var position = new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f));
-        //PhotonNetwork.Instantiate("Piece", position, Quaternion.identity);
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        //base.OnJoinRoomFailed(returnCode, message);
-        //matchFailedWindow.SetActive(true);
+
     }
 
     private void Awake()
@@ -59,13 +90,42 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
     }
     private void ManagedUpdate()
     {
-        if (isMatching) return;
+        
+    }
+
+    [SerializeField] private Image myImage;
+    [SerializeField] private Image enemyImage;
+    [SerializeField] private Sprite[] characters;
+    public void OnClickType(int type)
+    {
+        myChara = type;
+        myImage.sprite = characters[type];
         if (!inRoom) return;
-        if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
+        if(PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
         {
-            isMatching = true;
-            //Scene遷移
-            SceneManager.LoadScene("Battle");
+            photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, myChara);
         }
+    }
+
+    [PunRPC]
+    private void EnemyChangeChara(int type)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            GuestCharacter = type;
+            HostCharacter = myChara;
+        }
+        else
+        {
+            HostCharacter = type;
+            GuestCharacter = myChara;
+        }
+        enemyImage.sprite = characters[type];
+    }
+
+    [PunRPC]
+    private void LoadScene()
+    {
+        SceneManager.LoadScene("Battle");
     }
 }

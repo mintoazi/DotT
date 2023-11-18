@@ -90,13 +90,13 @@ public class Calculator
     public static List<Vector2Int> CalcAttackPosition(Vector2Int attackerPos, List<Vector2Int> attackPos, int attackAhead)
     {
         List<Vector2Int> attackPositions = new List<Vector2Int>();
-        Debug.Log("攻撃する側の位置" + attackerPos);
+        //Debug.Log("攻撃する側の位置" + attackerPos);
         for (int i = 0; i < attackPos.Count; i++)
         {
             Vector2Int v2i = CalcAttackPosition(attackerPos, attackPos[i], attackAhead);
-            if (!(v2i.x < Length && v2i.x > -1 && v2i.y < Length && v2i.y > -1)) continue;
+            if (!(v2i.x < Length && v2i.x > -4 && v2i.y < Length && v2i.y > -1)) continue;
             attackPositions.Add(v2i);
-            Debug.Log("ダメージ位置" + v2i);
+            //Debug.Log("ダメージ位置" + v2i);
         }
         return attackPositions;
     }
