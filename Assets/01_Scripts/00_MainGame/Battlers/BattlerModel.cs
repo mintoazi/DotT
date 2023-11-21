@@ -38,14 +38,14 @@ public class BattlerModel : MonoBehaviour
 
     private enum SupportCost
     {
-        Error = 0,
-        DecreaceCostByOne = 1,
-        IncreaceAttackByTwo = 2,
-        DecreaceCostByTwo = 3,
-        IncreaceDefenceByTwo = 4,
-        DecreaceCostByThree = 5,
-        HealByTwo = 6,
-        Special
+        DecreaceCostByOne = 0,
+        IncreaceAttackByTwo = 1,
+        DecreaceCostByTwo = 2,
+        IncreaceDefenceByTwo = 3,
+        DecreaceCostByThree = 4,
+        HealByTwo = 5,
+        Special = 6,
+        Error = 7
     }
 
     private void Awake()
@@ -119,8 +119,8 @@ public class BattlerModel : MonoBehaviour
     {
         int old = _health.Value;
 
-        _health.Value += value;
-        if (_health.Value >= 20) _health.Value = 20;
+        if (_health.Value + value >= 20) _health.Value = 20; // è„å¿í¥Ç¶Ç»Ç¢ÇÊÇ§Ç…
+        else _health.Value += value;
 
         DebugDisplayHP(old, _health.Value);
     }
@@ -151,6 +151,15 @@ public class BattlerModel : MonoBehaviour
     public void UseCost(int cost)
     {
         _isCostUses[cost].Value = true;
+    }
+    public List<bool> GetUsedCosts()
+    {
+        List<bool> usedCosts = new List<bool>();
+        for(int i = 0; i < COSTS; i++)
+        {
+            usedCosts.Add(IsCostUses[i].Value);
+        }
+        return usedCosts;
     }
 
     private void OnDestroy()

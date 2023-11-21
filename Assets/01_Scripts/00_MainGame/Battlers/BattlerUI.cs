@@ -50,6 +50,8 @@ public class BattlerUI : MonoBehaviour
 
     public void UpdateHP(int hp)
     {
+        Debug.Log(int.Parse(hpText.text));
+        Debug.Log(hp);
         if (int.Parse(hpText.text) > hp) ShakeChara(0.3f, 20).Forget();
         hpText.text = hp.ToString();
     }

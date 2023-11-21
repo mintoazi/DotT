@@ -72,9 +72,10 @@ public class BattlerMove : MonoBehaviour
         //if(Input.GetKeyDown(KeyCode.Escape)) { Move().Forget(); }
 
         if (!canMove) return;
-        // 移動ができるようになったRayを飛ばす
+        // 移動ができるようになったらRayを飛ばす
         Vector3 inflatePos = new Vector3(0f, 0.02f, 0f);
         Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+        Locator<GenerateGame>.Instance.DeactiveAttackRangeTiles();
         if (Physics.Raycast(ray, out raycastHit))
         {
             // 移動先のタイル判定
@@ -84,16 +85,19 @@ public class BattlerMove : MonoBehaviour
                 return;
             }
             if (!selectTile.activeSelf) selectTile.SetActive(true);
+            
             selectTile.transform.position = raycastHit.transform.position + inflatePos;
+            var diff = raycastHit.transform.position - transform.position;
+            var prePiecePos = new Vector2Int(PiecePos.x + (int)(diff.z / tileSpace.z),
+                                             PiecePos.y + (int)diff.x);
+
+            Locator<GameMaster>.Instance.ActiveAttackTiles(prePiecePos);
 
             // 移動先のタイルをクリックしたら移動
             if (Input.GetMouseButtonDown(0) && selectTile)
             {
-                var diff = raycastHit.transform.position - transform.position;
-                //transform.position = raycastHit.transform.position;
-                PiecePos = new Vector2Int(PiecePos.x + (int)(diff.z / tileSpace.z),
-                                          PiecePos.y + (int)diff.x);
-                //Debug.Log(PiecePos + "に移動したい");
+                Locator<GenerateGame>.Instance.DeactiveAttackRangeTiles();
+                PiecePos = prePiecePos;
                 // 移動したガイドを消す
                 selectTile.SetActive(false);
                 canMove = false;

@@ -6,7 +6,8 @@ using Photon.Pun;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.SceneManagement;
-
+// オープンカード×２バグ
+// カード提出時　バグ　原因不明
 public class GameMaster : MonoBehaviourPunCallbacks
 {
     [SerializeField] Battler player;
@@ -117,11 +118,9 @@ public class GameMaster : MonoBehaviourPunCallbacks
                 break;
             case Phase.Win:
                 winPanel.SetActive(true);
-                isPhase = true;
                 break;
             case Phase.Lose:
                 losePanel.SetActive(true);
-                isPhase = true;
                 break;
         }
     }
@@ -213,6 +212,20 @@ public class GameMaster : MonoBehaviourPunCallbacks
         recievePos = Calculator.CalcEnemyPosition(attackPos);
         generateGame.ActiveAttackRangeTiles(recievePos);
     }
+
+    public void ActiveAttackTiles(Vector2Int prePlayerPos)
+    {
+        List<Vector2Int> attackPos;
+        List<Vector2Int> recievePos;
+        Card card = player.RecentCard;
+        attackPos = card.Base.AttackPos;
+
+        attackPos = Calculator.CalcAttackPosition(prePlayerPos,
+                                                  attackPos,
+                                                  card.Base.AttackAhead);
+        recievePos = Calculator.CalcEnemyPosition(attackPos);
+        generateGame.ActiveAttackRangeTiles(recievePos);
+    }
     
     /// <summary>
     /// 提出したカードのコストが低い順に移動
@@ -247,6 +260,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     }
     private async UniTask MovePhase()
     {
+        isPhase = true;
         generateGame.ActiveCanMoveTiles();
         Vector2Int movedPos = await player.Move();
         //Debug.Log(movedPos);
@@ -334,7 +348,8 @@ public class GameMaster : MonoBehaviourPunCallbacks
         while(player.CanUseSupport)
         {
             await player.PlaySupport();
-            photonView.RPC(nameof(PlaySupportCard), RpcTarget.Others, player.RecentCard.Base.Id, player.Model.Health.Value);
+            Debug.Log("サポートカードの使用");
+            photonView.RPC(nameof(PlaySupportCard), RpcTarget.Others, player.RecentCard.Base.Id);
             
             await UniTask.WaitForSeconds(1.0f);
             player.SelectCard.DeleteCard();
@@ -432,12 +447,10 @@ public class GameMaster : MonoBehaviourPunCallbacks
         isEnemySubmited = true;
     }
     [PunRPC]
-    private async UniTask PlaySupportCard(int id, int health)
+    private async UniTask PlaySupportCard(int id)
     {
         //enemy.Model.SetHp(health);
-        enemy.PlaySupportCard(id);
-        await enemy.RecentCard.OpenCard();
-        await UniTask.WaitForSeconds(1.0f);
+        await enemy.PlaySupportCard(id);
         enemy.SelectCard.DeleteCard();
     }
     [PunRPC]
@@ -496,18 +509,20 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {
-        SetPhase(Phase.Win);
+        SetPhase(Phase.Win).Forget();
         //photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Lose);
     }
     public void OnClickTitle()
     {
-        SceneManager.LoadScene("MatchingScene");
         PhotonNetwork.Disconnect();
+        SceneManager.LoadScene("MatchingScene");
+        
         //photonView.RPC(nameof(LoadScene), RpcTarget.Others, "MatchingScene");
     }
     [PunRPC]
     public void LoadScene(string sceneName)
     {
+        PhotonNetwork.Disconnect();
         SceneManager.LoadScene(sceneName);
     }
 }

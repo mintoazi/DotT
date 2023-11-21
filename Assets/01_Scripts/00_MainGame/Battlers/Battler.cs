@@ -55,7 +55,22 @@ public class Battler : MonoBehaviour
         if (IsSubmit || IsWait) return;
         if(card != null) Locator<GameMaster>.Instance.ActiveAttackTiles(card);
         SelectCard.Set(card);
-        //Debug.Log(SelectCard.SelectedCard.name + "が選択された！");
+    }
+
+    private async UniTask SelectingCard(bool isPlayCardPhase)
+    {
+        SetActivePanel(target: playCardPanel, isActive: true);
+        if(isPlayCardPhase) Hand.SetSelectable(Model.GetUsedCosts());
+        else Hand.SetSelectable(true);
+        while (true)
+        {
+            var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
+            await buttonEvent.OnInvokeAsync();
+            if (selectCard.SelectedCard) break;
+            else continue;
+        }
+        Hand.SetSelectable(false);
+        SetActivePanel(target: playCardPanel, isActive: false);
     }
 
     /// <summary>
@@ -66,21 +81,11 @@ public class Battler : MonoBehaviour
         // 使えるカードがあるかチェックする
         bool isReDraw = CheckCanUseCard();
         if (isReDraw) return null;
+
+        await SelectingCard(isPlayCardPhase:false);
         
-        // パネルの表示
-        SetActivePanel(target: playCardPanel, isActive: true);
-        //selectCard.SelectedPosition = reDrawPos.transform;
-
-        while (SelectCard.SelectedCard == null)
-        {
-            await UniTask.DelayFrame(1);
-        }
-
-        var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
-        await buttonEvent.OnInvokeAsync();
-        SetActivePanel(target: playCardPanel, isActive: false);
-        SelectCard.DeleteCard();
-        return Model.ReturnNotUseCost();
+        SelectCard.DeleteCard(); // 選択したカードの削除
+        return Model.ReturnNotUseCost(); // 使っていないコストを返す
 
         bool CheckCanUseCard()
         {
@@ -104,20 +109,12 @@ public class Battler : MonoBehaviour
     /// </summary>
     public async UniTask PlayCard()
     {
-        SetActivePanel(target:playCardPanel, isActive: true);
-        //selectCard.SelectedPosition = playCardPos.transform;
         turnType = Model.CurrentType.Value;
-        while (true)
-        {
-            var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
-            await buttonEvent.OnInvokeAsync();
-            bool isNull = selectCard.SelectedCard == null;
-            if (isNull) continue;
-            bool costCheck = !Model.IsCostUses[SelectCard.SelectedCard.Base.Cost].Value;
-            if (costCheck) break;
-        }
+
+        await SelectingCard(isPlayCardPhase: true);
+
         Locator<GenerateGame>.Instance.DeactiveAttackRangeTiles();
-        //model.UseCards++; // そのターンに使用したカードを追加
+
         RecentCard = SelectCard.SelectedCard; // 使用したカードを代入
         OldIsMatchCharaType = IsMatchCharaType;
         IsMatchCharaType = ((int)RecentCard.Base.Type == model.CharaType.Value); // キャラタイプとカードタイプが合ってるかどうか
@@ -125,35 +122,29 @@ public class Battler : MonoBehaviour
         //Debug.Log("サポートカードの有効" + CanUseSupport);
         //Debug.Log("強化カードの有効" + IsMatchCharaType);
         RemoveCard(SelectCard.SelectedCard);
-
-        SetActivePanel(target: playCardPanel, isActive: false);
     }
 
     // PlayCardと同じ処理だからここを何とかしたい
     public async UniTask PlaySupport()
     {
         SetActivePanel(target: playSupportCardPanel, isActive: true);
-
+        Hand.SetSelectable(true);
         while (SelectCard.SelectedCard == null)
         {
             await UniTask.DelayFrame(1);
         }
-
-        //while (true)
-        //{
-        //    var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
-        //    await buttonEvent.OnInvokeAsync();
-        //    break;
-        //}
-
         
         RecentCard = SelectCard.SelectedCard;
         CanUseSupport = ((int)RecentCard.Base.Type == turnType);
-        if (hand.Hands.Count == 0) CanUseSupport = false;
+        
         if (IsMatchCharaType) model.AddBuff();
-        Debug.Log("サポートカードの有効" + CanUseSupport);
-        Model.UseSupportCard(RecentCard.Base.Cost + 1); // ここを追加しただけ
+        
+        Model.UseSupportCard(RecentCard.Base.Cost); 
         RemoveCard(SelectCard.SelectedCard);
+        if (hand.Hands.Count == 0) CanUseSupport = false;
+
+        Debug.Log("サポートカードの有効" + CanUseSupport);
+        Hand.SetSelectable(false);
         SetActivePanel(target: playSupportCardPanel, isActive: false);
     }
 
@@ -219,13 +210,14 @@ public class Battler : MonoBehaviour
         SelectCard.Set(card);
         RecentCard = SelectCard.SelectedCard;
     }
-    public void PlaySupportCard(int id)
+    public async UniTask PlaySupportCard(int id)
     {
         Card card = hand.Remove(id);
         SelectedPosition(card).Forget();
         SelectCard.Set(card);
         RecentCard = SelectCard.SelectedCard;
-        Model.UseSupportCard(RecentCard.Base.Cost + 1);
+        await RecentCard.OpenCard();
+        Model.UseSupportCard(RecentCard.Base.Cost);
     }
 
     [SerializeField] GameObject selectedPosition = null;

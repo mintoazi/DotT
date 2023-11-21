@@ -1,8 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using Cysharp.Threading.Tasks;
 
 public class BattlerHand : MonoBehaviour
 {
@@ -22,7 +19,6 @@ public class BattlerHand : MonoBehaviour
     public void Remove(Card card)
     {
         Hands.Remove(card);
-        //ResetPositions();
     }
     public Card Remove(int id)
     {
@@ -31,6 +27,26 @@ public class BattlerHand : MonoBehaviour
         Remove(card);
         ResetPositions();
         return card;
+    }
+
+    public void SetSelectable(bool canSelect)
+    {
+        foreach(Card c in Hands)
+        {
+            c.gameObject.GetComponent<CardMovement>().SetSelectable(canSelect);
+        }
+    }
+
+    public void SetSelectable(List<bool> isCostUsed)
+    {
+        string s = "";
+        foreach(Card c in Hands)
+        {
+            if (isCostUsed[c.Base.Cost]) continue;
+            s += c.Base.Cost.ToString() + ":";
+            c.gameObject.GetComponent<CardMovement>().SetSelectable(true);
+        }
+        Debug.Log(s);
     }
 
     // ÉJÅ[ÉhÇï¿Ç—ë÷Ç¶ÇÈ

@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -16,17 +15,18 @@ public class DropPlace : MonoBehaviour, IDropHandler
         if (selectedCard != null) CardToHand();
         //選択されたカード
         selectedCard = eventData.pointerDrag.GetComponent<CardMovement>();
+        Debug.Log(selectedCard + "ga sentaku");
 
         //選択されたカードが存在する場合
         if (selectedCard != null)
         {
-            if (isSelected) CardToSelect(); 
+            if (isSelected) CardToField(); 
             else CardToHand();
         }
     }
 
     // カードを選択状態にする
-    private void CardToSelect()
+    private void CardToField()
     {
         selectedCard.MoveToSelect(selectedPosition, isSelected).Forget();
         selectedCard.IsHand = false;
