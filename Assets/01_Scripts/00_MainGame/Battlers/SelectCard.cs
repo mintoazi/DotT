@@ -6,30 +6,16 @@ public class SelectCard : MonoBehaviour
     Card selectedCard;
     public Card SelectedCard { get => selectedCard; }
 
-    // 選択したカードの座標をセットする
-    Transform selectedPosition;
-    public Transform SelectedPosition { set => selectedPosition = value; }
-
-    // 選択したカードを子要素にする
-    [SerializeField] Transform selectedCardParent;
-    
-
-    // 自分の子要素にする・位置の変更
     public void Set(Card card)
     {
-        //if (selectedPosition == null) return;
         selectedCard = card;
-        //card.transform.SetParent(selectedCardParent, false);
-        //card.transform.position = selectedPosition.position;
-        //card.SetScale(true);
     }
 
     public void DeleteCard()
     {
-        Debug.Log("カードが墓地に送られました");
-        if (selectedCard.gameObject == null) return;
-        DestroyImmediate(selectedCard.gameObject);
         if (selectedCard == null) return;
+        Debug.Log(selectedCard.Base.Name + "が墓地に送られました");
+        DestroyImmediate(selectedCard.gameObject);
         selectedCard = null;
     }
 }

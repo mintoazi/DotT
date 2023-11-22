@@ -21,7 +21,6 @@ public class GameMaster : MonoBehaviourPunCallbacks
     bool isEnemySubmited = false;
     bool isEnemyAttacked = false;
     bool isEnemyUsedSupport = false;
-    bool isEnemyEnd = false;
     float submitTime = 0f;
     float enemySubmitTime = 0f;
 
@@ -94,7 +93,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
                 break;
             case Phase.Move:
                 // 先攻移動
-                Debug.Log("ムーブフェイズ");
+                
                 MovePhase().Forget();
                 break;
             case Phase.Attack:
@@ -179,7 +178,10 @@ public class GameMaster : MonoBehaviourPunCallbacks
         }
         Card card = Locator<CardGenerator>.Instance.ReDraw(costs, isEnemy: false);
 
-        photonView.RPC(nameof(ReDraw), RpcTarget.Others, card.Base.Id);
+        int removedCardID = player.RecentCard.Base.Id;
+        int drewCardID = card.Base.Id;
+
+        photonView.RPC(nameof(ReDraw), RpcTarget.Others, removedCardID, drewCardID);
         player.SetCardToHand(card);
 
         await SetPhase(Phase.PlayAttackCard);
@@ -233,7 +235,6 @@ public class GameMaster : MonoBehaviourPunCallbacks
     /// <returns></returns>
     private async UniTask CheckTurnPhase()
     {
-        isPhase = true;
         await UniTask.WaitUntil(() => isEnemySubmited);
         await SetPhase(Phase.CheckCard);
         await enemy.RecentCard.OpenCard(); // 敵のカードをオープン
@@ -260,7 +261,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     }
     private async UniTask MovePhase()
     {
-        isPhase = true;
+        Debug.Log("ムーブフェイズ");
         generateGame.ActiveCanMoveTiles();
         Vector2Int movedPos = await player.Move();
         //Debug.Log(movedPos);
@@ -330,7 +331,9 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
         await SetPhase(Phase.Wait);
         await CheckVictoryOrDefeat();
-        
+
+        player.Model.ResetBuffs(); // バフのリセット
+        enemy.Model.ResetBuffs();　// バフのリセット
         // 敵のターンの設定
         if (isEnemyAttacked) photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.PlaySupportCard);
         else photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Move);
@@ -343,8 +346,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     {
         isPhase = true;
         player.IsWait = false;
-        player.Model.ResetBuffs();
-        enemy.Model.ResetBuffs();
+        
         while(player.CanUseSupport)
         {
             await player.PlaySupport();
@@ -376,7 +378,6 @@ public class GameMaster : MonoBehaviourPunCallbacks
         isEnemyAttacked = false;
         isEnemySubmited = false;
         isEnemyUsedSupport = false;
-        isEnemyEnd = false;
 
         // Drawからスタート
         await SetPhase(Phase.Draw);
@@ -431,12 +432,14 @@ public class GameMaster : MonoBehaviourPunCallbacks
     [PunRPC]
     private void Draw(int id)
     {
-        enemy.Draw(Locator<CardGenerator>.Instance.ChoiceDraw(id, isEnemy: true));
+        Card card = Locator<CardGenerator>.Instance.ChoiceDraw(id, isEnemy: true);
+        enemy.Draw(card);
     }
     [PunRPC]
-    private void ReDraw(int id)
+    private void ReDraw(int removeID, int drawID)
     {
-        enemy.RemoveCard(id);
+        enemy.RemoveCard(removeID);
+        Draw(drawID);
     }
     
     [PunRPC]
@@ -450,6 +453,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private async UniTask PlaySupportCard(int id)
     {
         //enemy.Model.SetHp(health);
+        Debug.Log("相手のサポート使用");
         await enemy.PlaySupportCard(id);
         enemy.SelectCard.DeleteCard();
     }
@@ -514,7 +518,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     }
     public void OnClickTitle()
     {
-        PhotonNetwork.Disconnect();
+        Disconnect();
         SceneManager.LoadScene("MatchingScene");
         
         //photonView.RPC(nameof(LoadScene), RpcTarget.Others, "MatchingScene");
@@ -522,7 +526,13 @@ public class GameMaster : MonoBehaviourPunCallbacks
     [PunRPC]
     public void LoadScene(string sceneName)
     {
-        PhotonNetwork.Disconnect();
+        Disconnect();
         SceneManager.LoadScene(sceneName);
+    }
+
+    private void Disconnect()
+    {
+        PhotonNetwork.Disconnect();
+        Destroy(OnlineMenuManager.onlineManager.gameObject);
     }
 }

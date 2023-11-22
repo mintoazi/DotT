@@ -12,12 +12,14 @@ public class BattlerHand : MonoBehaviour
     public void Add(Card card)
     {
         Hands.Add(card);
+        Debug.Log(card.Base.Name + "が追加された");
         card.transform.SetParent(transform);
         ResetPositions();
     }
     // カード手札から除外する
     public void Remove(Card card)
     {
+        Debug.Log(card.Base.Name + "が墓地に送られた");
         Hands.Remove(card);
     }
     public Card Remove(int id)
@@ -46,7 +48,7 @@ public class BattlerHand : MonoBehaviour
             s += c.Base.Cost.ToString() + ":";
             c.gameObject.GetComponent<CardMovement>().SetSelectable(true);
         }
-        Debug.Log(s);
+        Debug.Log("使用できる手札" + s);
     }
 
     // カードを並び替える
@@ -55,6 +57,7 @@ public class BattlerHand : MonoBehaviour
         //Hands.Sort((card0, card1) => card0.Base.Id - card1.Base.Id);
         for (int i = 0; i < Hands.Count; i++) 
         {
+            //if(this.gameObject.name == "Player") Debug.Log(hands[i].Base.Name);
             hands[i].SetLayer(i);
             hands[i].SetScale(false);
             float posX = (i - (Hands.Count-1) / 2f) * cardSpace;

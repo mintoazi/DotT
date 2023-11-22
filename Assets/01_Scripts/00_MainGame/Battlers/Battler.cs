@@ -45,10 +45,6 @@ public class Battler : MonoBehaviour
     {
         SetCardToHand(card);
     }
-    public void Draw(int id)
-    {
-        SetCardToHand(Locator<CardGenerator>.Instance.ChoiceDraw(id, true));
-    }
 
     public void SelectedCard(Card card)
     {
@@ -82,8 +78,9 @@ public class Battler : MonoBehaviour
         bool isReDraw = CheckCanUseCard();
         if (isReDraw) return null;
 
-        await SelectingCard(isPlayCardPhase:false);
-        
+        await SelectingCard(isPlayCardPhase: false);
+        RecentCard = SelectCard.SelectedCard;
+        Hand.Remove(SelectCard.SelectedCard);
         SelectCard.DeleteCard(); // 選択したカードの削除
         return Model.ReturnNotUseCost(); // 使っていないコストを返す
 

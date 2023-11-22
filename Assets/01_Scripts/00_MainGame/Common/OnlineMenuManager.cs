@@ -7,6 +7,7 @@ using UniRx.Triggers;
 using UnityEngine.SceneManagement;
 public class OnlineMenuManager : MonoBehaviourPunCallbacks
 {
+    public static OnlineMenuManager onlineManager;
     public static int HostCharacter = 0;
     public static int GuestCharacter = 0;
     private int myChara = 0;
@@ -21,12 +22,32 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
     [SerializeField] private Text roomIdText;
     [SerializeField] private GameObject matchFailedWindow;
 
+    private void Awake()
+    {
+        // シングルトン
+        if (OnlineMenuManager.onlineManager == null)
+        {
+            OnlineMenuManager.onlineManager = this;
+        }
+        else
+        {
+            if(OnlineMenuManager.onlineManager != null)
+            {
+                Destroy(OnlineMenuManager.onlineManager.gameObject);
+                OnlineMenuManager.onlineManager = this;
+            }
+        }
+
+        //Update処理の追加
+        this.UpdateAsObservable()
+        .Subscribe(
+            _ => ManagedUpdate()
+        );
+    }
     private void Start()
     {
         HostCharacter = 0;
         GuestCharacter = 0;
-        //roomIdText.text = "111";
-        //OnMatchingButton();
     }
     public void OnMatchingButton()
     {
@@ -65,13 +86,22 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         // "Room"という名前のルームに参加する（ルームが存在しなければ作成して参加する）
-        PhotonNetwork.JoinOrCreateRoom(roomIdText.text, new RoomOptions() { MaxPlayers = 2 }, TypedLobby.Default);
+        RoomOptions options = new RoomOptions();
+        options.PublishUserId = true;
+        options.MaxPlayers = 2;
+        PhotonNetwork.JoinOrCreateRoom(roomIdText.text, options, TypedLobby.Default);
+        Debug.Log("ロビーに入室しました。");
+        
     }
 
     // ゲームサーバーへの接続が成功した時に呼ばれるコールバック
     public override void OnJoinedRoom()
     {
         inRoom = true;
+        if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
+        {
+            Debug.Log(PhotonNetwork.MasterClient.UserId + "のロビーに入室しました。");
+        }
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
@@ -79,14 +109,22 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
 
     }
 
-    private void Awake()
+    public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        Debug.Log(newPlayer.UserId + "が入室しました。");
+    }
 
-        //Update処理の追加
-        this.UpdateAsObservable()
-        .Subscribe(
-            _ => ManagedUpdate()
-        );
+    public void OnClickLeftRoom()
+    {
+        PhotonNetwork.Disconnect();
+    }
+    public override void OnLeftRoom()
+    {
+        Debug.Log("退出しました。");
+    }
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        Debug.Log(otherPlayer.UserId + "が退出しました。");
     }
     private void ManagedUpdate()
     {
