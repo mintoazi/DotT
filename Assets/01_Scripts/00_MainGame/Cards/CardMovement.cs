@@ -50,7 +50,18 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 
     public void OnDrag(PointerEventData eventData)
     {
-        transform.position = eventData.position;
+        //Debug.Log(eventData.pointerCurrentRaycast.gameObject.name);
+
+        // シャドバ風に処理
+        // blockRaycasts 視覚化処理
+        // pointerCurrentRaycast.gameObject.CompareTag("Field"){
+        // 
+        // }
+        Vector3 pos = transform.position;
+        pos.x = eventData.position.x;
+        pos.y = eventData.position.y;
+        transform.position = pos;
+        //transform.position = Input.mousePosition;
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -60,27 +71,17 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
 
     public async UniTask MoveToSelect(Transform trans, bool isSelect)
     {
-        float time = 0f;
-        Vector3 startPos = transform.position;
-        Vector3 startSize = transform.localScale;
-
-        while(time < moveTime)
+        if (isSelect)
         {
-            time += Time.deltaTime;
-            if (time > moveTime) time = moveTime;
-            if (isSelect)
-            {
-                transform.localScale = Vector3.Lerp(startSize, selectCardSize, time / moveTime);
-                transform.position = Vector3.Lerp(startPos, trans.position, time / moveTime);
-            }
-            else
-            {
-                if (transform == null) return;
-                transform.localScale = Vector3.Lerp(startSize, Vector3.one, time / moveTime);
-                transform.position = Vector3.Lerp(startPos, handPosition, time / moveTime);
-                canvasGroup.blocksRaycasts = true;
-            }
-            await UniTask.DelayFrame(1);
+            myCard.ResizeCard(selectCardSize, moveTime).Forget();
+            await myCard.MoveCard(trans.position, moveTime);
+        }
+        else
+        {
+            if (transform == null) return;
+            myCard.ResizeCard(Vector3.one, moveTime).Forget();
+            await myCard.MoveCard(handPosition, moveTime);
+            canvasGroup.blocksRaycasts = true;
         }
     }
 }

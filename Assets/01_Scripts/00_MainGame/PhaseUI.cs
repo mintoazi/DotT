@@ -35,7 +35,7 @@ public class PhaseUI : MonoBehaviour
                 phasePanels[(int)PhasePanel.ReDraw].SetActive(true);
                 p = PhasePanel.ReDraw;
                 break;
-            case GameMaster.Phase.PlayAttackCard:
+            case GameMaster.Phase.PlayCard:
                 phasePanels[(int)PhasePanel.PlayCard].SetActive(true);
                 p = PhasePanel.PlayCard;
                 break;
@@ -51,7 +51,7 @@ public class PhaseUI : MonoBehaviour
                 phasePanels[(int)PhasePanel.Attack].SetActive(true);
                 p = PhasePanel.Attack;
                 break;
-            case GameMaster.Phase.PlaySupportCard:
+            case GameMaster.Phase.Support:
                 phasePanels[(int)PhasePanel.Support].SetActive(true);
                 p = PhasePanel.Support;
                 break;

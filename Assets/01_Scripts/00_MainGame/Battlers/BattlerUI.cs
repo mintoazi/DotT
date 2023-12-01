@@ -50,8 +50,13 @@ public class BattlerUI : MonoBehaviour
 
     public void UpdateHP(int hp)
     {
-        if (int.Parse(hpText.text) > hp) ShakeChara(0.3f, 20).Forget();
         hpText.text = hp.ToString();
+    }
+
+    public void DamageEffect(bool isDamage)
+    {
+        if (isDamage) ShakeChara(0.3f, 20).Forget();
+        else return;
     }
 
     public void UpdateAttackBuff(int value) => buffText[(int)Buffs.Attack].text = value.ToString();

@@ -61,5 +61,11 @@ public sealed class BattlerPresenter : MonoBehaviour
             {
                 view.UpdateCostBuff(x);
             }).AddTo(this);
+
+        model.IsDamage
+            .Subscribe(x =>
+            {
+                view.DamageEffect(x);
+            }).AddTo(this);
     }
 }

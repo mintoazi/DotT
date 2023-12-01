@@ -6,21 +6,23 @@ public class DropPlace : MonoBehaviour, IDropHandler
 {
     [SerializeField] private bool isSelected = false; // 提出先か
     [SerializeField] private Transform selectedPosition;
+    [SerializeField] private Transform supportPosition;
     [SerializeField] private Battler player;
-    CardMovement selectedCard;
+    CardMovement selectingCard;
 
     //カードをドラッグした時
     public void OnDrop(PointerEventData eventData)
     {
-        if (selectedCard != null) CardToHand();
+        if (selectingCard != null && !player.IsSubmit) CardToHand();
         //選択されたカード
-        selectedCard = eventData.pointerDrag.GetComponent<CardMovement>();
-        Debug.Log(selectedCard + "ga sentaku");
+        selectingCard = eventData.pointerDrag.GetComponent<CardMovement>();
+        //Debug.Log(selectedCard + "ga sentaku");
 
         //選択されたカードが存在する場合
-        if (selectedCard != null)
+        if (selectingCard != null)
         {
-            if (isSelected) CardToField(); 
+            if (isSelected && !player.IsSubmit) CardToField();
+            else if (isSelected && player.IsSubmit) CardToSupportField();
             else CardToHand();
         }
     }
@@ -28,24 +30,30 @@ public class DropPlace : MonoBehaviour, IDropHandler
     // カードを選択状態にする
     private void CardToField()
     {
-        selectedCard.MoveToSelect(selectedPosition, isSelected).Forget();
-        selectedCard.IsHand = false;
-        player.SelectedCard(selectedCard.MyCard);
+        selectingCard.MoveToSelect(selectedPosition, isSelected).Forget();
+        selectingCard.IsHand = false;
+        player.SelectedCard(selectingCard.MyCard);
         //Debug.Log("カードがフィールドに出た！");
+    }
+    private void CardToSupportField()
+    {
+        selectingCard.MoveToSelect(supportPosition, isSelected).Forget();
+        selectingCard.IsHand = false;
+        player.SelectedCard(selectingCard.MyCard);
     }
     // カードを手札に戻す
     private void CardToHand()
     {
-        selectedCard.MoveToSelect(selectedCard.defaultParent, false).Forget();
-        selectedCard.IsHand = true;
-        selectedCard = null;
+        selectingCard.MoveToSelect(selectingCard.defaultParent, false).Forget();
+        selectingCard.IsHand = true;
+        selectingCard = null;
         player.SelectedCard(null);
         //Debug.Log("カードが手札に戻った！");
     }
 
     public void ClickOther()
     {
-        if (selectedCard == null) return;
+        if (selectingCard == null) return;
         //CardToHand();
     }
 }

@@ -35,6 +35,8 @@ public class BattlerModel : MonoBehaviour
     //コストバフの数
     public IReadOnlyReactiveProperty<int> CostBuff => _costBuff;
     private readonly IntReactiveProperty _costBuff = new IntReactiveProperty(0);
+    public IReadOnlyReactiveProperty<bool> IsDamage => _isDamage;
+    private readonly BoolReactiveProperty _isDamage = new BoolReactiveProperty(false);
 
     private enum SupportCost
     {
@@ -76,6 +78,7 @@ public class BattlerModel : MonoBehaviour
     }
     public void ResetBuffs()
     {
+        _isDamage.Value = false;
         _costBuff.Value = 0;
         _attackBuff.Value = 0;
         _defenceBuff.Value = 0;
@@ -135,7 +138,7 @@ public class BattlerModel : MonoBehaviour
     {
         int old = _health.Value;
         _health.Value -= damage;
-
+        _isDamage.Value = true;
         DebugDisplayHP(old, _health.Value);
     }
     public void DebugDisplayHP(int old, int current)
@@ -170,6 +173,7 @@ public class BattlerModel : MonoBehaviour
         _attackBuff.Dispose();
         _defenceBuff.Dispose();
         _costBuff.Dispose();
+        _isDamage.Dispose();
         for (int i = 0; i < _isCostUses.Length; i++)
         {
             _isCostUses[i].Dispose();

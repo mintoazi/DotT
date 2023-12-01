@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &160580486619488265
 RectTransform:
   m_ObjectHideFlags: 0
@@ -76,9 +76,9 @@ MonoBehaviour:
     m_AlignByGeometry: 1
     m_RichText: 1
     m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "\u73FE\u5728\u306E\u5C5E\u6027\u3068\u540C\u3058\u5C5E\u6027\u3060\u3063\u305F\u3089\n\uFF13\u30DE\u30B9\u5148\u306E\uFF13\xD7\uFF13\u30DE\u30B9\u306B\uFF17\u30C0\u30E1\u30FC\u30B8"
+  m_Text: 
 --- !u!1 &2400437533286757483
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,8 +267,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.0157485, y: -75.6}
-  m_SizeDelta: {x: 264, y: 60}
+  m_AnchoredPosition: {x: 0, y: -65.9}
+  m_SizeDelta: {x: 264, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5550562060409198452
 CanvasRenderer:
@@ -305,13 +305,13 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 10
     m_MaxSize: 56
-    m_Alignment: 1
+    m_Alignment: 4
     m_AlignByGeometry: 1
     m_RichText: 1
     m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "\u73FE\u5728\u306E\u5C5E\u6027\u3068\u540C\u3058\u5C5E\u6027\u3060\u3063\u305F\u3089\n\uFF13\u30DE\u30B9\u5148\u306E\uFF13\xD7\uFF13\u30DE\u30B9\u306B\uFF17\u30C0\u30E1\u30FC\u30B8"
+  m_Text: "\u30B5\u30DD\u30FC\u30C8\u52B9\u679C\n\u6B21\u306E\u30BF\u30FC\u30F3\u3001\u30B3\u30B9\u30C8\u5224\u5B9A\u6642\u306B\u30B3\u30B9\u30C8\u3092\uFF11\u4E0B\u3052\u308B"
 --- !u!1 &5151702762751545578
 GameObject:
   m_ObjectHideFlags: 0
@@ -656,8 +656,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.0157485, y: -13.5}
-  m_SizeDelta: {x: 264, y: 60}
+  m_AnchoredPosition: {x: 0, y: -24.3}
+  m_SizeDelta: {x: 264, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4441608478902967433
 CanvasRenderer:
@@ -689,18 +689,18 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 495e42db45cac5d4ba02c5784ea4b532, type: 3}
-    m_FontSize: 20
+    m_FontSize: 24
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 2
     m_MaxSize: 60
-    m_Alignment: 1
+    m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u73FE\u5728\u306E\u5C5E\u6027\u3068\u540C\u3058\u5C5E\u6027\u3060\u3063\u305F\u3089"
+  m_Text: "\u524D\u65B9\uFF12\u30DE\u30B9\u5148\u306BX\u72B6\uFF15\u30DE\u30B9\u306B\uFF12\u30C0\u30E1\u30FC\u30B8"
 --- !u!1 &9202374956122331228
 GameObject:
   m_ObjectHideFlags: 0

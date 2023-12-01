@@ -1,9 +1,12 @@
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class BattlerHand : MonoBehaviour
 {
     List<Card> hands = new List<Card>();
+    [SerializeField] private Transform deckTransform;
 
     public List<Card> Hands { get => hands; }
     private float cardSpace = 150f;
@@ -11,23 +14,22 @@ public class BattlerHand : MonoBehaviour
     // handsに追加して自分の子要素にする
     public void Add(Card card)
     {
-        Hands.Add(card);
-        Debug.Log(card.Base.Name + "が追加された");
+        card.transform.position = deckTransform.position;
+        hands.Add(card);
+        Debug.Log(gameObject.name + "に" + card.Base.Name + "が追加された");
         card.transform.SetParent(transform);
-        ResetPositions();
     }
     // カード手札から除外する
     public void Remove(Card card)
     {
-        Debug.Log(card.Base.Name + "が墓地に送られた");
-        Hands.Remove(card);
+        //Debug.Log(gameObject.name + "の" + card.Base.Name + "が墓地に送られた");
+        hands.Remove(card);
     }
     public Card Remove(int id)
     {
         Card card = hands.Find(x => x.Base.Id == id);
         if (card == null) Debug.Log("aaa" + id);
         Remove(card);
-        ResetPositions();
         return card;
     }
 
@@ -52,8 +54,9 @@ public class BattlerHand : MonoBehaviour
     }
 
     // カードを並び替える
-    public void ResetPositions()
+    public async UniTask ResetPositions()
     {
+        float moveTime = 0.4f;
         //Hands.Sort((card0, card1) => card0.Base.Id - card1.Base.Id);
         for (int i = 0; i < Hands.Count; i++) 
         {
@@ -61,7 +64,10 @@ public class BattlerHand : MonoBehaviour
             hands[i].SetLayer(i);
             hands[i].SetScale(false);
             float posX = (i - (Hands.Count-1) / 2f) * cardSpace;
-            Hands[i].transform.localPosition = new Vector3(posX, 0);
+
+            hands[i].ResizeCard(Vector3.one, moveTime).Forget();
+            hands[i].MoveCardLocal(new Vector3(posX, 0), moveTime).Forget();
         }
+        await UniTask.WaitForSeconds(moveTime);
     }
 }

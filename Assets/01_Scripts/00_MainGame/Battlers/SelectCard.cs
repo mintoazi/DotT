@@ -14,8 +14,7 @@ public class SelectCard : MonoBehaviour
     public void DeleteCard()
     {
         if (selectedCard == null) return;
-        Debug.Log(selectedCard.Base.Name + "‚ª•æ’n‚É‘—‚ç‚ê‚Ü‚µ‚½");
-        DestroyImmediate(selectedCard.gameObject);
+        selectedCard.Delete();
         selectedCard = null;
     }
 }

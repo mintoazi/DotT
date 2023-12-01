@@ -14,4 +14,8 @@ public class adad : MonoBehaviour, IDragHandler, IEndDragHandler
     {
         GetComponent<CanvasGroup>().blocksRaycasts = true;
     }
+    private void Awake()
+    {
+        Debug.Log(GameMaster.Phase.Attack.ToString());
+    }
 }

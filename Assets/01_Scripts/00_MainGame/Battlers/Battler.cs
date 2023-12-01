@@ -3,6 +3,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public class Battler : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class Battler : MonoBehaviour
     [SerializeField] SelectCard selectCard;
 
     public Card RecentCard { get; private set; }
+    public Card AttackCard { get; private set; }
+    public Card SupportCard { get; private set; }
 
     // Panel
     [SerializeField] GameObject playCardPanel;
@@ -48,7 +51,7 @@ public class Battler : MonoBehaviour
 
     public void SelectedCard(Card card)
     {
-        if (IsSubmit || IsWait) return;
+        if (IsWait) return;
         if(card != null) Locator<GameMaster>.Instance.ActiveAttackTiles(card);
         SelectCard.Set(card);
     }
@@ -82,6 +85,7 @@ public class Battler : MonoBehaviour
         RecentCard = SelectCard.SelectedCard;
         Hand.Remove(SelectCard.SelectedCard);
         SelectCard.DeleteCard(); // 選択したカードの削除
+
         return Model.ReturnNotUseCost(); // 使っていないコストを返す
 
         bool CheckCanUseCard()
@@ -109,13 +113,13 @@ public class Battler : MonoBehaviour
         turnType = Model.CurrentType.Value;
 
         await SelectingCard(isPlayCardPhase: true);
-
+        IsSubmit = true;
         Locator<GenerateGame>.Instance.DeactiveAttackRangeTiles();
 
-        RecentCard = SelectCard.SelectedCard; // 使用したカードを代入
+        AttackCard = SelectCard.SelectedCard; // 使用したカードを代入
         OldIsMatchCharaType = IsMatchCharaType;
-        IsMatchCharaType = ((int)RecentCard.Base.Type == model.CharaType.Value); // キャラタイプとカードタイプが合ってるかどうか
-        CanUseSupport = ((int)RecentCard.Base.Type == turnType); // サポートカードを使えるかどうか
+        IsMatchCharaType = ((int)AttackCard.Base.Type == model.CharaType.Value); // キャラタイプとカードタイプが合ってるかどうか
+        CanUseSupport = ((int)AttackCard.Base.Type == turnType); // サポートカードを使えるかどうか
         //Debug.Log("サポートカードの有効" + CanUseSupport);
         //Debug.Log("強化カードの有効" + IsMatchCharaType);
         RemoveCard(SelectCard.SelectedCard);
@@ -126,23 +130,39 @@ public class Battler : MonoBehaviour
     {
         SetActivePanel(target: playSupportCardPanel, isActive: true);
         Hand.SetSelectable(true);
+
+        // Reset
+        SupportCard = null;
+        SelectCard.Set(null);
+
         while (SelectCard.SelectedCard == null)
         {
             await UniTask.DelayFrame(1);
         }
         
-        RecentCard = SelectCard.SelectedCard;
-        CanUseSupport = ((int)RecentCard.Base.Type == turnType);
+        SupportCard = SelectCard.SelectedCard;
+        CanUseSupport = ((int)SupportCard.Base.Type == turnType);
         
         if (IsMatchCharaType) model.AddBuff();
         
-        Model.UseSupportCard(RecentCard.Base.Cost); 
-        RemoveCard(SelectCard.SelectedCard);
+        Model.UseSupportCard(SupportCard.Base.Cost); 
+        RemoveCard(SupportCard);
         if (hand.Hands.Count == 0) CanUseSupport = false;
 
         Debug.Log("サポートカードの有効" + CanUseSupport);
         Hand.SetSelectable(false);
         SetActivePanel(target: playSupportCardPanel, isActive: false);
+    }
+
+    public void ResetAttackCard()
+    {
+        AttackCard.Delete();
+        AttackCard = null;
+    }
+    public void ResetSupportCard()
+    {
+        SupportCard.Delete();
+        SupportCard = null;
     }
 
     /// <summary>
@@ -151,8 +171,8 @@ public class Battler : MonoBehaviour
     /// <returns>移動先</returns>
     public async UniTask<Vector2Int> Move()
     {
+        IsSubmit = false;
         var moved = await BattlerMove.Move();
-        SelectCard.DeleteCard();
         return moved;
     }
 
@@ -179,9 +199,9 @@ public class Battler : MonoBehaviour
 
    public void Attack()
     {
-        model.UseCost(RecentCard.Base.Cost);
-        battlerMove.UpdatePieceType((int)RecentCard.Base.Type);
-        Model.ChangeType((int)RecentCard.Base.Type);
+        model.UseCost(AttackCard.Base.Cost);
+        battlerMove.UpdatePieceType((int)AttackCard.Base.Type);
+        Model.ChangeType((int)AttackCard.Base.Type);
     }
 
     private void RemoveCard(Card card)
@@ -197,46 +217,41 @@ public class Battler : MonoBehaviour
     private void SetActivePanel(GameObject target, bool isActive)
     {
         target.SetActive(isActive);
-        IsSubmit = !isActive;
+        //IsSubmit = !isActive;
     }
 
     public void PlayCard(int id)
     {
         Card card = hand.Remove(id);
-        SelectedPosition(card).Forget();
+        SelectedPosition(card, attackPosition.position).Forget();
         SelectCard.Set(card);
-        RecentCard = SelectCard.SelectedCard;
+        AttackCard = SelectCard.SelectedCard;
+        IsMatchCharaType = ((int)AttackCard.Base.Type == model.CharaType.Value);
     }
     public async UniTask PlaySupportCard(int id)
     {
         Card card = hand.Remove(id);
-        SelectedPosition(card).Forget();
-        SelectCard.Set(card);
-        RecentCard = SelectCard.SelectedCard;
-        await RecentCard.OpenCard();
-        Model.UseSupportCard(RecentCard.Base.Cost);
+        SelectedPosition(card, supportPosition.position).Forget();
+        SupportCard = card;
+        await SupportCard.OpenCard();
+        Model.UseSupportCard(SupportCard.Base.Cost);
+        if (IsMatchCharaType) model.AddBuff();
     }
 
-    [SerializeField] GameObject selectedPosition = null;
+    [SerializeField] Transform attackPosition = null;
+    [SerializeField] Transform supportPosition = null;
     /// <summary>
     /// 選択カードの移動
     /// </summary>
     /// <param name="card"></param>
     /// <returns></returns>
-    private async UniTask SelectedPosition(Card card)
+    private async UniTask SelectedPosition(Card card, Vector3 pos)
     {
-        float time = 0;
         float moveTime = 0.2f;
-        //Debug.Log(card);
-        //Debug.Log(card.transform.position);
         if (card == null) return;
-        Vector3 startPos = card.transform.position;
-        while(time < moveTime)
-        {
-            time += Time.deltaTime;
-            if (time > moveTime) time = moveTime; 
-            card.transform.position = Vector3.Lerp(startPos, selectedPosition.transform.position, time / moveTime);
-            await UniTask.DelayFrame(1);
-        }
+        Vector3 size = new Vector3(2f, 2f, 2f);
+
+        card.MoveCard(pos, moveTime).Forget();
+        await card.ResizeCard(size, moveTime);
     }
 }
