@@ -17,8 +17,8 @@ public class BattlerModel : MonoBehaviour
     private readonly BoolReactiveProperty[] _isCostUses = new BoolReactiveProperty[COSTS];
 
     //現在の属性
-    public IReadOnlyReactiveProperty<int> CurrentType => _currentType;
-    public readonly IntReactiveProperty _currentType = new IntReactiveProperty(0);
+    //public IReadOnlyReactiveProperty<int> CurrentType => _currentType;
+    //public readonly IntReactiveProperty _currentType = new IntReactiveProperty(0);
 
     //キャラの種類
     public IReadOnlyReactiveProperty<int> CharaType => _charaType;
@@ -61,7 +61,7 @@ public class BattlerModel : MonoBehaviour
     public void Init(int health, int type)
     {
         _health.Value = health;
-        _currentType.Value = type;
+        //_currentType.Value = type;
         _charaType.Value = type;
     }
     public List<int> ReturnNotUseCost()
@@ -145,12 +145,12 @@ public class BattlerModel : MonoBehaviour
     {
         Debug.Log(this.gameObject.name + "：" + old + "=>" + current);
     }
-    public void ChangeType(int type)
-    {
-        int old = _currentType.Value;
-        _currentType.Value = type;
-        Debug.Log(this.gameObject.name + "：" + (CardTypeM)old + "=>" + (CardTypeM)type);
-    }
+    //public void ChangeType(int type)
+    //{
+    //    int old = _currentType.Value;
+    //    _currentType.Value = type;
+    //    Debug.Log(this.gameObject.name + "：" + (CardTypeM)old + "=>" + (CardTypeM)type);
+    //}
     public void UseCost(int cost)
     {
         _isCostUses[cost].Value = true;
@@ -168,7 +168,7 @@ public class BattlerModel : MonoBehaviour
     private void OnDestroy()
     {
         _health.Dispose();
-        _currentType.Dispose();
+        //_currentType.Dispose();
         _charaType.Dispose();
         _attackBuff.Dispose();
         _defenceBuff.Dispose();

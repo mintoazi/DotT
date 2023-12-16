@@ -163,10 +163,14 @@ public class GameMaster : MonoBehaviourPunCallbacks
         {
             Card card = Locator<CardGenerator>.Instance.Draw(false);
             player.Draw(card);
+            if(PhotonNetwork.IsConnected)
             photonView.RPC(nameof(Draw), RpcTarget.Others, card.Base.Id);
         }
         await player.Hand.ResetPositions();
-        photonView.RPC(nameof(ResetHandPosition), RpcTarget.Others);
+        if(PhotonNetwork.IsConnected)
+        {
+            photonView.RPC(nameof(ResetHandPosition), RpcTarget.Others);
+        }
         await SetPhase(Phase.ReDraw);
     }
     private async UniTask ReDrawPhase()
@@ -287,12 +291,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
         Card card = player.AttackCard;
         
         // タイプの検査
-        bool isMatch = (int)card.Base.Type == player.Model.CurrentType.Value;
+        bool isMatch = (int)card.Base.Type == player.Model.CharaType.Value;
         int id = card.Base.Id;
 
         // 攻撃時　コマの色変化　コストの消費
         player.BattlerMove.UpdatePieceType((int)card.Base.Type);
-        player.Model.ChangeType((int)card.Base.Type);
+        //player.Model.ChangeType((int)card.Base.Type);
         player.Model.UseCost(card.Base.Cost);
 
         // 攻撃場所の計算

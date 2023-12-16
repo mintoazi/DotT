@@ -34,9 +34,6 @@ public class Battler : MonoBehaviour
     public BattlerModel Model { get => model; }
     public SelectCard SelectCard { get => selectCard; }
 
-    int turnType = 0;
-    // public UnityAction OnSubmitAction;
-
     // カードが配られる
     public void SetCardToHand(Card card)
     {
@@ -49,6 +46,7 @@ public class Battler : MonoBehaviour
         SetCardToHand(card);
     }
 
+    // カードを選ぶ
     public void SelectedCard(Card card)
     {
         if (IsWait) return;
@@ -56,6 +54,7 @@ public class Battler : MonoBehaviour
         SelectCard.Set(card);
     }
 
+    // カード選択中処理
     private async UniTask SelectingCard(bool isPlayCardPhase)
     {
         SetActivePanel(target: playCardPanel, isActive: true);
@@ -104,24 +103,25 @@ public class Battler : MonoBehaviour
             return false;
         }
     }
-    
+    private void CheckType(int type)
+    {
+        CanUseSupport = model.CharaType.Value == type;
+        IsMatchCharaType = CanUseSupport;
+        // タイプあってる時オーラ的なのまとわせたい
+    }
     /// <summary>
     /// カードを使用させる
     /// </summary>
     public async UniTask PlayCard()
     {
-        turnType = Model.CurrentType.Value;
+        //turnType = Model.CurrentType.Value;
 
         await SelectingCard(isPlayCardPhase: true);
         IsSubmit = true;
         Locator<GenerateGame>.Instance.DeactiveAttackRangeTiles();
 
         AttackCard = SelectCard.SelectedCard; // 使用したカードを代入
-        OldIsMatchCharaType = IsMatchCharaType;
-        IsMatchCharaType = ((int)AttackCard.Base.Type == model.CharaType.Value); // キャラタイプとカードタイプが合ってるかどうか
-        CanUseSupport = ((int)AttackCard.Base.Type == turnType); // サポートカードを使えるかどうか
-        //Debug.Log("サポートカードの有効" + CanUseSupport);
-        //Debug.Log("強化カードの有効" + IsMatchCharaType);
+        CheckType((int)AttackCard.Base.Type); // サポートカードを使えるかどうか
         RemoveCard(SelectCard.SelectedCard);
     }
 
@@ -141,15 +141,13 @@ public class Battler : MonoBehaviour
         }
         
         SupportCard = SelectCard.SelectedCard;
-        CanUseSupport = ((int)SupportCard.Base.Type == turnType);
-        
+
+        CheckType((int)SupportCard.Base.Type);
         if (IsMatchCharaType) model.AddBuff();
         
         Model.UseSupportCard(SupportCard.Base.Cost); 
         RemoveCard(SupportCard);
         if (hand.Hands.Count == 0) CanUseSupport = false;
-
-        Debug.Log("サポートカードの有効" + CanUseSupport);
         Hand.SetSelectable(false);
         SetActivePanel(target: playSupportCardPanel, isActive: false);
     }
@@ -201,7 +199,7 @@ public class Battler : MonoBehaviour
     {
         model.UseCost(AttackCard.Base.Cost);
         battlerMove.UpdatePieceType((int)AttackCard.Base.Type);
-        Model.ChangeType((int)AttackCard.Base.Type);
+        //Model.ChangeType((int)AttackCard.Base.Type);
     }
 
     private void RemoveCard(Card card)
@@ -226,7 +224,7 @@ public class Battler : MonoBehaviour
         SelectedPosition(card, attackPosition.position).Forget();
         SelectCard.Set(card);
         AttackCard = SelectCard.SelectedCard;
-        IsMatchCharaType = ((int)AttackCard.Base.Type == model.CharaType.Value);
+        CheckType((int)AttackCard.Base.Type);
     }
     public async UniTask PlaySupportCard(int id)
     {
@@ -249,7 +247,7 @@ public class Battler : MonoBehaviour
     {
         float moveTime = 0.2f;
         if (card == null) return;
-        Vector3 size = new Vector3(2f, 2f, 2f);
+        Vector3 size = new Vector3(1.5f, 1.5f, 1.5f);
 
         card.MoveCard(pos, moveTime).Forget();
         await card.ResizeCard(size, moveTime);

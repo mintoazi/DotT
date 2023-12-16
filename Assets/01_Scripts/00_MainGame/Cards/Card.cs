@@ -9,7 +9,7 @@ public class Card : MonoBehaviour
 
     [SerializeField] private Text cardName;
     [SerializeField] private Text description;
-    [SerializeField] private Text matchDescription;
+    //[SerializeField] private Text matchDescription;
     [SerializeField] private Text supDescription;
     [SerializeField] private Text cost;
     [SerializeField] private Text demoCost;
@@ -29,7 +29,7 @@ public class Card : MonoBehaviour
         Base = cardBase;
         cardName.text = cardBase.Name;
         description.text = cardBase.Description;
-        matchDescription.text = "<color=#ff00ff>現在の属性と同じ属性だったら</color>\n" + cardBase.SDescription;
+        //matchDescription.text = "<color=#ff00ff>現在の属性と同じ属性だったら</color>\n" + cardBase.SDescription;
         supDescription.text = "<color=#7cfc00>サポート使用時</color>\n" + cardBase.SupDescription;
         cost.text = (cardBase.Cost + 1).ToString();
         demoCost.text = (cardBase.Cost + 1).ToString();

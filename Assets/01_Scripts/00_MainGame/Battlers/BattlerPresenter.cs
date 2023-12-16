@@ -30,13 +30,6 @@ public sealed class BattlerPresenter : MonoBehaviour
            }).AddTo(this);
         }
 
-        model.CurrentType
-            .Subscribe(x =>
-            {
-                // View‚É”½‰f
-                view.UpdateType(x);
-            }).AddTo(this);
-
         model.CharaType
             .Subscribe(x =>
             {

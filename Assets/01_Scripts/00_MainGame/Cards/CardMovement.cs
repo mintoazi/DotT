@@ -5,8 +5,10 @@ using Cysharp.Threading.Tasks;
 
 public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerClickHandler
 {
+    [SerializeField] private RectTransform rectTransform;
     [SerializeField] private Card myCard;
     [SerializeField] private Image grayoutPanel;
+    
     [SerializeField] private bool isEnemy = false;
     public bool IsEnemy{ set { isEnemy = value; } }
     
@@ -37,12 +39,14 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
     public void OnPointerClick(PointerEventData eventData)
     {
         // カード情報の拡大表示    
-
+        Locator<CardView>.Instance.SetCard(myCard);
+        Locator<CardView>.Instance.View();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (IsHand) handPosition = transform.position; // 元に戻すときの場所を保存
+        Debug.Log(eventData.position);
         defaultParent = transform.parent;
         transform.SetParent(defaultParent, false);
         canvasGroup.blocksRaycasts = false;
@@ -57,11 +61,7 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
         // pointerCurrentRaycast.gameObject.CompareTag("Field"){
         // 
         // }
-        Vector3 pos = transform.position;
-        pos.x = eventData.position.x;
-        pos.y = eventData.position.y;
-        transform.position = pos;
-        //transform.position = Input.mousePosition;
+        rectTransform.anchoredPosition = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)

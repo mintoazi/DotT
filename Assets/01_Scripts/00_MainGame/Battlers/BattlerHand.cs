@@ -1,12 +1,13 @@
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class BattlerHand : MonoBehaviour
 {
     List<Card> hands = new List<Card>();
     [SerializeField] private Transform deckTransform;
+    [SerializeField] private Transform handTransform;
+    [SerializeField] private RectTransform battlerTransform;
 
     public List<Card> Hands { get => hands; }
     private float cardSpace = 150f;
@@ -17,7 +18,7 @@ public class BattlerHand : MonoBehaviour
         card.transform.position = deckTransform.position;
         hands.Add(card);
         Debug.Log(gameObject.name + "に" + card.Base.Name + "が追加された");
-        card.transform.SetParent(transform);
+        card.transform.SetParent(handTransform);
     }
     // カード手札から除外する
     public void Remove(Card card)
@@ -63,10 +64,13 @@ public class BattlerHand : MonoBehaviour
             //if(this.gameObject.name == "Player") Debug.Log(hands[i].Base.Name);
             hands[i].SetLayer(i);
             hands[i].SetScale(false);
+            // カードを中央並べにする
             float posX = (i - (Hands.Count-1) / 2f) * cardSpace;
+            float posY = transform.position.y;
+            //Debug.Log(posY);
 
             hands[i].ResizeCard(Vector3.one, moveTime).Forget();
-            hands[i].MoveCardLocal(new Vector3(posX, 0), moveTime).Forget();
+            hands[i].MoveCardLocal(new Vector3(posX, posY), moveTime).Forget();
         }
         await UniTask.WaitForSeconds(moveTime);
     }
