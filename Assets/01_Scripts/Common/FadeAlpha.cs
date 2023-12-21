@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,18 +9,20 @@ public static class FadeAlpha
     {
         float start = 1f;
         float end = 0f;
-        float step = 0f;
+        float time = 0f;
+        float fadeTime = 2f;
         Color c = target.color;
 
         c.a = start;
         target.color = c;
 
-        while(step >= end)
+        while(time <= fadeTime)
         {
-            step += Time.deltaTime;
+            time += Time.deltaTime;
+            float step = time / fadeTime;
             c.a = Mathf.Lerp(start, end, step);
             target.color = c;
-            await UniTask.DelayFrame(1);
+            await UniTask.Yield();
         }
     }
 
@@ -27,18 +30,20 @@ public static class FadeAlpha
     {
         float start = 0f;
         float end = 1f;
-        float step = 0f;
+        float time = 0f;
+        float fadeTime = 2f;
         Color c = target.color;
 
         c.a = start;
         target.color = c;
 
-        while (step >= end)
+        while (time <= fadeTime)
         {
-            step += Time.deltaTime;
+            time += Time.deltaTime;
+            float step = time / fadeTime;
             c.a = Mathf.Lerp(start, end, step);
             target.color = c;
-            await UniTask.DelayFrame(1);
+            await UniTask.Yield();
         }
     }
 }

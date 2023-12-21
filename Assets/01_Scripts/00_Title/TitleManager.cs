@@ -8,9 +8,17 @@ using UnityEngine.UI;
 public class TitleManager : MonoBehaviour
 {
     [SerializeField] private Image fadePanel;
+
     private void Awake()
     {
-        FadeAlpha.FadeIn(fadePanel).Forget();
+        StartFade().Forget();
+    }
+    private async UniTask StartFade()
+    {
+        await FadeAlpha.FadeIn(fadePanel);
+        await UniTask.WaitUntil(() => Input.GetMouseButtonDown(0));
+        await FadeAlpha.FadeOut(fadePanel);
+        LoadHomeScene();
     }
 
     public void LoadHomeScene()
