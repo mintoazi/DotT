@@ -5,12 +5,12 @@ using UnityEngine.UI;
 
 public static class FadeAlpha
 {
+    private const float fadeTime = 0.3f;
     public static async UniTask FadeIn(Image target)
     {
         float start = 1f;
         float end = 0f;
         float time = 0f;
-        float fadeTime = 2f;
         Color c = target.color;
 
         c.a = start;
@@ -31,7 +31,6 @@ public static class FadeAlpha
         float start = 0f;
         float end = 1f;
         float time = 0f;
-        float fadeTime = 2f;
         Color c = target.color;
 
         c.a = start;

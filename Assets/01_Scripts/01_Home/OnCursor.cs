@@ -35,18 +35,17 @@ public class OnCursor : MonoBehaviour, IPointerEnterHandler, IPointerClickHandle
     private async UniTask OnClick()
     {
         float currentTime = 0f;
-        float defWidth = uiOutline.OutlineWidth;
         float defSize = buttonBase.localScale.x;
         bool flash = true;
 
+        uiOutline.ResizeOutline(flashOutlineWidth, flashTime).Forget();
         // ボタンの伸縮、アウトラインのフラッシュ
-        while(true)
+        while (true)
         {
             if(flash) currentTime += Time.deltaTime;
             else currentTime -= Time.deltaTime;
 
             float step = currentTime / flashTime;
-            if (flash) uiOutline.OutlineWidth = Mathf.Lerp(defWidth, flashOutlineWidth, step);
             buttonBase.localScale = Vector3.one * Mathf.Lerp(defSize, clickedSize, step);
 
             if (currentTime > flashTime) flash = false;
@@ -64,6 +63,7 @@ public class OnCursor : MonoBehaviour, IPointerEnterHandler, IPointerClickHandle
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (onClicked) return;
         director.Play();
     }
 

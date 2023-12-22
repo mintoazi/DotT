@@ -21,5 +21,12 @@ public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
             return instance;
         }
     }
+    private void Awake()
+    {
+        CheckSingleton();
+    }
+    public virtual void CheckSingleton()
+    {
 
+    }
 }

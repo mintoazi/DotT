@@ -113,12 +113,12 @@ TextureImporter:
       name: Background_Magic_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 453
-        width: 2742
-        height: 902
+        x: 272
+        y: 454
+        width: 1920
+        height: 540
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -126,6 +126,27 @@ TextureImporter:
       bones: []
       spriteID: cfa564c5eecbc584fa01ac508eb5f9e5
       internalID: 1673364345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Background_Magic_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 2742
+        height: 1543
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4eca365b70079694ca4378982aef2d7b
+      internalID: -1230406723
       vertices: []
       indices: 
       edges: []
@@ -142,6 +163,7 @@ TextureImporter:
     secondaryTextures: []
     nameFileIdTable:
       Background_Magic_0: 1673364345
+      Background_Magic_1: -1230406723
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

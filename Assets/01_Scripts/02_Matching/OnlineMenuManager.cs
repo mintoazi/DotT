@@ -5,22 +5,23 @@ using UnityEngine.UI;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine.SceneManagement;
+using Cysharp.Threading.Tasks;
+
 public class OnlineMenuManager : MonoBehaviourPunCallbacks
 {
     public static OnlineMenuManager onlineManager;
     public static int HostCharacter = 0;
     public static int GuestCharacter = 0;
-    private int myChara = 0;
     // ボタンを押したらマッチング開始
     // ルームIDでマッチング
     // なければ自分で作る
     // 部屋が二名になればシーン遷移
 
-    private bool inRoom;
-    private bool isMatching;
+    private bool inRoom = false;
+    private bool isStart = false;
+    private bool eIsReady = false;
 
-    [SerializeField] private Text roomIdText;
-    [SerializeField] private GameObject matchFailedWindow;
+    private string roomIdText;
 
     private void Awake()
     {
@@ -49,37 +50,32 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
         HostCharacter = 0;
         GuestCharacter = 0;
     }
-    public void OnMatchingButton()
+    public void OnMatchingButton(string s)
     {
-        if (roomIdText.text == "") return;
+        roomIdText = s;
         // PhotonServerSettingsの設定内容を使ってマスターサーバーへ接続する
         PhotonNetwork.ConnectUsingSettings();
     }
     public void OnStartButton()
     {
-        if (isMatching) return;
+        if (isStart) return;
         if (!inRoom) return;
         if (!PhotonNetwork.IsMasterClient)
         {
+            photonView.RPC(nameof(OnReady), RpcTarget.Others);
             Debug.Log("あなたはホストではありません。");
             return;
         }
-        if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
-        {
-            if (PhotonNetwork.IsMasterClient)
-            {
-                HostCharacter = myChara;
-                photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, myChara);
-            }
-            else
-            {
-                GuestCharacter = myChara;
-                photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, myChara);
-            }
-            isMatching = true;
-            //Scene遷移
-            photonView.RPC(nameof(LoadScene), RpcTarget.AllViaServer);
-        }
+
+        StartGame().Forget();
+    }
+
+    private async UniTask StartGame()
+    {
+        await UniTask.WaitUntil(() => eIsReady);
+        isStart = true;
+        //Scene遷移
+        photonView.RPC(nameof(LoadScene), RpcTarget.AllViaServer);
     }
 
     // マスターサーバーへの接続が成功した時に呼ばれるコールバック
@@ -89,7 +85,7 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
         RoomOptions options = new RoomOptions();
         options.PublishUserId = true;
         options.MaxPlayers = 2;
-        PhotonNetwork.JoinOrCreateRoom(roomIdText.text, options, TypedLobby.Default);
+        PhotonNetwork.JoinOrCreateRoom(roomIdText, options, TypedLobby.Default);
         Debug.Log("ロビーに入室しました。");
         
     }
@@ -131,39 +127,34 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
         
     }
 
-    [SerializeField] private Image myImage;
-    [SerializeField] private Image enemyImage;
-    [SerializeField] private Sprite[] characters;
     public void OnClickType(int type)
     {
-        myChara = type;
-        myImage.sprite = characters[type];
         if (!inRoom) return;
-        if(PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
+
+        if (PhotonNetwork.IsMasterClient) HostCharacter = type;
+        else GuestCharacter = type;
+       
+        if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
         {
-            photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, myChara);
+            photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, type);
         }
     }
-
+    [PunRPC]
+    private void OnReady()
+    {
+        eIsReady = true;
+    }
     [PunRPC]
     private void EnemyChangeChara(int type)
     {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            GuestCharacter = type;
-            HostCharacter = myChara;
-        }
-        else
-        {
-            HostCharacter = type;
-            GuestCharacter = myChara;
-        }
-        enemyImage.sprite = characters[type];
+        if (PhotonNetwork.IsMasterClient) GuestCharacter = type;
+        else HostCharacter = type;
+        Locator<CharacterSelectController>.Instance.ChangeEnemyChara(type);
     }
 
     [PunRPC]
     private void LoadScene()
     {
-        SceneManager.LoadScene("Battle");
+        SceneLoader.Instance.Load(Scenes.Scene.BATTLE).Forget();
     }
 }

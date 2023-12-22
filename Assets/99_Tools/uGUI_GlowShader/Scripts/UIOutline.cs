@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +19,22 @@ public class UIOutline : MaskableGraphic
     public override Texture mainTexture => m_Texture == null ? s_WhiteTexture : m_Texture;
 
     public float OutlineWidth { get => _outlineWidth; set { _outlineWidth = value; SetVerticesDirty(); } }
-   
+
+    public async UniTask ResizeOutline(float width, float duration)
+    {
+        float currentTime = 0f;
+        float defWidth = OutlineWidth;
+
+        // ボタンの伸縮、アウトラインのフラッシュ
+        while (currentTime < duration)
+        {
+            currentTime += Time.deltaTime;
+
+            float step = currentTime / duration;
+            OutlineWidth = Mathf.Lerp(defWidth, width, step);
+            await UniTask.Yield();
+        }
+    }
     protected override void OnRectTransformDimensionsChange()
     {
         base.OnRectTransformDimensionsChange();
