@@ -160,7 +160,7 @@ TextureImporter:
         width: 1920
         height: 540
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -168,6 +168,27 @@ TextureImporter:
       bones: []
       spriteID: bc0d57192d8cb4f43a4995d507d534f4
       internalID: 1667918050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Background_Curse_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1920
+        height: 1080
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c044243cb33c1a49af4fce9da09983b
+      internalID: 955042217
       vertices: []
       indices: 
       edges: []
@@ -186,6 +207,7 @@ TextureImporter:
       Background_Curse_0: 652577630
       Background_Curse_1: 313933432
       Background_Curse_2: 1667918050
+      Background_Curse_3: 955042217
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
