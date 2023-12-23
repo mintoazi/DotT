@@ -60,6 +60,7 @@ public class Battler : MonoBehaviour
         SetActivePanel(target: playCardPanel, isActive: true);
         if(isPlayCardPhase) Hand.SetSelectable(Model.GetUsedCosts());
         else Hand.SetSelectable(true);
+        submitButton.gameObject.SetActive(true);
         while (true)
         {
             var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
@@ -68,6 +69,7 @@ public class Battler : MonoBehaviour
             else continue;
         }
         Hand.SetSelectable(false);
+        submitButton.gameObject.SetActive(false);
         SetActivePanel(target: playCardPanel, isActive: false);
     }
 

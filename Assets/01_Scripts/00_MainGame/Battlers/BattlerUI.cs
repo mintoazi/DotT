@@ -25,6 +25,7 @@ public class BattlerUI : MonoBehaviour
     private enum Buffs { Attack, Defence, Cost }
 
     [SerializeField] private Text hpText;
+    [SerializeField] private ParticleSystem particle;
 
     public void UpdateCharaType(int charaType)
     {
@@ -50,6 +51,8 @@ public class BattlerUI : MonoBehaviour
 
     public void UpdateHP(int hp)
     {
+        int old = int.Parse(hpText.text);
+        if (old < hp) HealEffect();
         hpText.text = hp.ToString();
     }
 
@@ -77,5 +80,10 @@ public class BattlerUI : MonoBehaviour
             await UniTask.DelayFrame(1);
         }
         battlerSkin.rectTransform.localPosition = oldPos;
+    }
+
+    private void HealEffect()
+    {
+        particle.Play();
     }
 }

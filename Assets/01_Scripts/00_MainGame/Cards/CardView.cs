@@ -10,7 +10,9 @@ public class CardView : MonoBehaviour
     [SerializeField] private Text cost;
     //[SerializeField] private Text demoCost;
     [SerializeField] private Image cardFrame;
-    [SerializeField] private Sprite[] cardSprite = null;
+    [SerializeField] private Sprite[] cardFrameSprite = null;
+    [SerializeField] private Image cardImage;
+    [SerializeField] private Sprite[] cardSprite;
 
     private void Awake() => Locator<CardView>.Bind(this);
     private void OnDestroy() => Locator<CardView>.Unbind(this);
@@ -22,6 +24,7 @@ public class CardView : MonoBehaviour
         description.text = card.Base.Description;
         supDescription.text = card.Base.SupDescription;
         cost.text = card.Base.Cost.ToString();
-        cardFrame.sprite = cardSprite[(int)card.Base.Type];
+        cardFrame.sprite = cardFrameSprite[(int)card.Base.Type];
+        cardImage.sprite = cardSprite[card.Base.Id];
     }
 }
