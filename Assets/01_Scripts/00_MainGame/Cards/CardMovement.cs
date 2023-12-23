@@ -8,7 +8,8 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
     [SerializeField] private RectTransform rectTransform;
     [SerializeField] private Card myCard;
     [SerializeField] private Image grayoutPanel;
-    
+    [SerializeField] private UIOutline uiOutline;
+
     [SerializeField] private bool isEnemy = false;
     public bool IsEnemy{ set { isEnemy = value; } }
     
@@ -16,7 +17,7 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
     private bool isHand = true;
 
     private CanvasGroup canvasGroup;
-    private Vector3 selectCardSize = new Vector3(2f, 2f, 2f);
+    private Vector3 selectCardSize = new Vector3(1.5f, 1.5f, 1.5f);
     private Vector3 handPosition;
     private float moveTime = 0.2f;
 
@@ -41,6 +42,7 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
         // カード情報の拡大表示    
         Locator<CardView>.Instance.SetCard(myCard);
         Locator<CardView>.Instance.View();
+        uiOutline.Enable();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -82,6 +84,14 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
             myCard.ResizeCard(Vector3.one, moveTime).Forget();
             await myCard.MoveCard(handPosition, moveTime);
             canvasGroup.blocksRaycasts = true;
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            uiOutline.Disable();
         }
     }
 }

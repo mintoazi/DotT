@@ -12,9 +12,10 @@ public class Card : MonoBehaviour
     //[SerializeField] private Text matchDescription;
     [SerializeField] private Text supDescription;
     [SerializeField] private Text cost;
-    [SerializeField] private Text demoCost;
     [SerializeField] private Image cardFrame;
-    [SerializeField] private Sprite[] cardSprite = null;
+    [SerializeField] private Sprite[] cardFrameSprite = null;
+    [SerializeField] private Image cardImage;
+    [SerializeField] private Sprite[] cardImageSprite = null;
     [SerializeField] private Vector3 selectedScale;
     [SerializeField] private Vector3 handScale;
     [SerializeField] private GameObject buttonPanel;
@@ -30,10 +31,10 @@ public class Card : MonoBehaviour
         cardName.text = cardBase.Name;
         description.text = cardBase.Description;
         //matchDescription.text = "<color=#ff00ff>現在の属性と同じ属性だったら</color>\n" + cardBase.SDescription;
-        supDescription.text = "<color=#7cfc00>サポート使用時</color>\n" + cardBase.SupDescription;
+        supDescription.text = "<color=#da70d6>サポート使用時</color>\n" + cardBase.SupDescription;
         cost.text = (cardBase.Cost + 1).ToString();
-        demoCost.text = (cardBase.Cost + 1).ToString();
-        cardFrame.sprite = cardSprite[(int)cardBase.Type];
+        cardImage.sprite = cardImageSprite[cardBase.Id];
+        cardFrame.sprite = cardFrameSprite[(int)cardBase.Type];
 
         // 自分のカードはボタンを表示、相手のカードは裏面表示
         //buttonPanel.SetActive(!isEnemy);

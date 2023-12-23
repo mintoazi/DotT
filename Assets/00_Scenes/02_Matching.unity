@@ -414,13 +414,13 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 301561782}
   m_TextComponent: {fileID: 678815660}
   m_Placeholder: {fileID: 447640233}
-  m_ContentType: 0
-  m_InputType: 0
+  m_ContentType: 8
+  m_InputType: 2
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 4
   m_LineType: 0
   m_HideMobileInput: 0
-  m_CharacterValidation: 0
+  m_CharacterValidation: 1
   m_CharacterLimit: 5
   m_OnSubmit:
     m_PersistentCalls:

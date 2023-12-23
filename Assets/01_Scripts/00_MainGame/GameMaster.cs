@@ -399,7 +399,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
     private async UniTask CheckVictoryOrDefeat()
     {
-        if (enemy.Model.Health.Value < 0)
+        if (enemy.Model.Health.Value <= 0)
         {
             await SetPhase(Phase.Win);
             photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Lose);
@@ -540,7 +540,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     public void OnClickTitle()
     {
         Disconnect();
-        SceneManager.LoadScene("MatchingScene");
+        SceneLoader.Instance.Load(Scenes.Scene.HOME).Forget();
         
         //photonView.RPC(nameof(LoadScene), RpcTarget.Others, "MatchingScene");
     }

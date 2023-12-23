@@ -34,7 +34,10 @@ public class UIOutline : MaskableGraphic
             OutlineWidth = Mathf.Lerp(defWidth, width, step);
             await UniTask.Yield();
         }
+        OutlineWidth = width;
     }
+    public void Enable() => ResizeOutline(40f, 0.3f).Forget();
+    public void Disable() => ResizeOutline(0f, 0f).Forget();
     protected override void OnRectTransformDimensionsChange()
     {
         base.OnRectTransformDimensionsChange();
