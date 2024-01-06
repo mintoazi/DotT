@@ -12,6 +12,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
 {
     [SerializeField] Battler player;
     [SerializeField] Battler enemy;
+    [SerializeField] CpuController cpu;
     [SerializeField] GenerateGame generateGame;
     [SerializeField] GameObject winPanel;
     [SerializeField] GameObject losePanel;
@@ -19,10 +20,13 @@ public class GameMaster : MonoBehaviourPunCallbacks
     [SerializeField] CutInController cutInController;
     [SerializeField] DisplayCharacterInfo displayCharacterInfo;
     private int turns = 0;
-    
+
+    bool isOnline = false;
+
     bool isEnemySubmited = false;
     bool isEnemyAttacked = false;
     bool isEnemyUsedSupport = false;
+    bool isEnemyReDraw = false;
     float submitTime = 0f;
     float enemySubmitTime = 0f;
 
@@ -59,6 +63,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private void Start()
     {
         Debug.Log("初期フェイズ");
+        isOnline = PhotonNetwork.IsConnected;
         InitPhase().Forget();
     }
 
@@ -149,7 +154,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         await SetPhase(Phase.Draw);
     }
 
-    // 5枚になるまで引く
+    // 5枚になるまで引く : CPU設定完了
     private async UniTask DrawPhase()
     {
         int startCards = 5;
@@ -163,16 +168,28 @@ public class GameMaster : MonoBehaviourPunCallbacks
         {
             Card card = Locator<CardGenerator>.Instance.Draw(false);
             player.Draw(card);
-            if(PhotonNetwork.IsConnected)
-            photonView.RPC(nameof(Draw), RpcTarget.Others, card.Base.Id);
+
+            if (isOnline) photonView.RPC(nameof(Draw), RpcTarget.Others, card.Base.Id);
+            else
+            {
+                Card c = Locator<CardGenerator>.Instance.Draw(false); // あとでtrueに変える
+                enemy.Draw(c);
+            }
+
         }
         await player.Hand.ResetPositions();
-        if(PhotonNetwork.IsConnected)
+        if(isOnline)
         {
             photonView.RPC(nameof(ResetHandPosition), RpcTarget.Others);
         }
+        else
+        {
+            enemy.Hand.ResetPositions().Forget();
+        }
         await SetPhase(Phase.ReDraw);
     }
+
+    // 使えるコストが無い場合　カードを引かせる : CPU絶対バグる
     private async UniTask ReDrawPhase()
     {
         isPhase = true;
@@ -191,9 +208,13 @@ public class GameMaster : MonoBehaviourPunCallbacks
         photonView.RPC(nameof(ReDraw), RpcTarget.Others, removedCardID, drewCardID);
         player.SetCardToHand(card);
         await player.Hand.ResetPositions();
+
+        await UniTask.WaitUntil(()=>isEnemyReDraw);
+
         await SetPhase(Phase.PlayCard);
     }
 
+    // カードを使用するフェーズ : CPU設定完了
     private async UniTask PlayCardPhase()
     {
         isPhase = true;
@@ -203,10 +224,58 @@ public class GameMaster : MonoBehaviourPunCallbacks
         submitTime = Time.time - submitTime;
 
         CardBase card = player.AttackCard.Base;
-        photonView.RPC(nameof(PlayCard), RpcTarget.Others, card.Id, submitTime);
+        if (isOnline) photonView.RPC(nameof(PlayCard), RpcTarget.Others, card.Id, submitTime);
+        else
+        {
+            int id = cpu.PlayCard().Base.Id;
+            enemy.PlayCard(id);
+            enemySubmitTime = 5.0f; // ここを後で相談
+            isEnemySubmited = true;
+        }
         await UniTask.WaitUntil(() => isEnemySubmited);
         if (submitTime < enemySubmitTime) SetPhase(Phase.Support).Forget();
         else SetPhase(Phase.Wait).Forget();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /// <summary>
+    /// サポートカードをプレイさせる
+    /// </summary>
+    /// <returns></returns>
+    private async UniTask PlaySupportPhase()
+    {
+        isPhase = true;
+        player.IsWait = false;
+
+        while (player.CanUseSupport)
+        {
+            await player.PlaySupport();
+            Debug.Log("サポートカードの使用");
+            photonView.RPC(nameof(PlaySupportCard), RpcTarget.Others, player.SupportCard.Base.Id);
+
+            await UniTask.WaitForSeconds(1.0f);
+            player.ResetSupportCard();
+        }
+
+        player.IsWait = true;
+        if(isOnline) photonView.RPC(nameof(UsedSupportCard), RpcTarget.Others);
+        if (!isEnemyUsedSupport)
+        {
+            photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Support);
+        }
+        CheckTurnPhase().Forget();
     }
 
     public void ActiveAttackTiles(Card card)
@@ -354,33 +423,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         //if (isEnemyAttacked) photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.);
         //else photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Move);
     }
-    /// <summary>
-    /// サポートカードをプレイさせる
-    /// </summary>
-    /// <returns></returns>
-    private async UniTask PlaySupportPhase()
-    {
-        isPhase = true;
-        player.IsWait = false;
-        
-        while(player.CanUseSupport)
-        {
-            await player.PlaySupport();
-            Debug.Log("サポートカードの使用");
-            photonView.RPC(nameof(PlaySupportCard), RpcTarget.Others, player.SupportCard.Base.Id);
-            
-            await UniTask.WaitForSeconds(1.0f);
-            player.ResetSupportCard();
-        }
-
-        player.IsWait = true;
-        photonView.RPC(nameof(UsedSupportCard), RpcTarget.Others);
-        if (!isEnemyUsedSupport)
-        {
-            photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Support);
-        }
-        CheckTurnPhase().Forget();
-    }
+    
     private async UniTask EndPhase()
     {
         isPhase = true;
