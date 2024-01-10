@@ -24,11 +24,13 @@ public class SceneLoader : SingletonMonoBehaviour<SceneLoader>
     [SerializeField] private Image fadePanel;
     [SerializeField] private Animator anim;
 
-    private string[] sceneName = new string[4] { 
+    private string[] sceneName = new string[6] { 
         "00_Title", // Scene.TITLE
         "01_Home",  // Scene.HOME
         "02_Matching",// Scene.MATCHING
-        "03_Battle" // Scene.BATTLE
+        "03_Battle",  // Scene.BATTLE
+        "03_Battle",
+        "05_CPUBattle"
     }; 
 
     private const float loadTime = 4f;

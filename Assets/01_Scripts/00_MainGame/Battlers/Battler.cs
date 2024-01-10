@@ -109,6 +109,7 @@ public class Battler : MonoBehaviour
     {
         CanUseSupport = model.CharaType.Value == type;
         IsMatchCharaType = CanUseSupport;
+        if (this.Hand.Hands.Count == 0) CanUseSupport = false;
         // タイプあってる時オーラ的なのまとわせたい
     }
     /// <summary>
@@ -225,6 +226,7 @@ public class Battler : MonoBehaviour
         Card card = hand.Remove(id);
         SelectedPosition(card, attackPosition.position).Forget();
         SelectCard.Set(card);
+        RecentCard = SelectCard.SelectedCard;
         AttackCard = SelectCard.SelectedCard;
         CheckType((int)AttackCard.Base.Type);
     }
@@ -235,6 +237,7 @@ public class Battler : MonoBehaviour
         SupportCard = card;
         await SupportCard.OpenCard();
         Model.UseSupportCard(SupportCard.Base.Cost);
+        CheckType((int)SupportCard.Base.Type);
         if (IsMatchCharaType) model.AddBuff();
     }
 

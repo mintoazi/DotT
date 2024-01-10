@@ -58,6 +58,9 @@ public class OnCursor : MonoBehaviour, IPointerEnterHandler, IPointerClickHandle
             case Home.Buttons.B_ROOM:
                 SceneLoader.Instance.Load(Scenes.Scene.MATCHING).Forget();
                 break;
+            case Home.Buttons.B_CPU:
+                SceneLoader.Instance.Load(Scenes.Scene.CPU_ROOM).Forget();
+                break;
         }
     }
 

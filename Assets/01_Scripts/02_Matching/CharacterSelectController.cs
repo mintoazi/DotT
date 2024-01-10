@@ -21,6 +21,10 @@ public class CharacterSelectController : MonoBehaviour
     Image playerDescription;
 
     [SerializeField]
+    GameObject enemyInfoObject;
+    [SerializeField]
+    GameObject enemyWaitObject;
+    [SerializeField]
     Image enemyImage;
     [SerializeField]
     Image enemyDescription;
@@ -63,6 +67,18 @@ public class CharacterSelectController : MonoBehaviour
     {
         OnlineMenuManager.onlineManager.OnClickLeftRoom();
         Locator<MatchingManager>.Instance.SetState(MatchingManager.State.Room);
+    }
+
+    public void EnemyHasJoined()
+    {
+        enemyWaitObject.SetActive(false);
+        enemyInfoObject.SetActive(true);
+    }
+
+    public void EnemyHasLeft()
+    {
+        enemyInfoObject.SetActive(false);
+        enemyWaitObject.SetActive(true);
     }
 
     public void ChangeEnemyChara(int type)
