@@ -66,7 +66,7 @@ public class CpuController : MonoBehaviour
         return hands[0];
     }
 
-    public Vector2Int MovePos()
+    public int MovePos()
     {
         List<Vector2Int> movePos = new List<Vector2Int>();
         for(int i = 0; i < tiles; i++)
@@ -79,9 +79,23 @@ public class CpuController : MonoBehaviour
             if (CheckHitCard(cpu.RecentCard, prePos)) movePos.Add(prePos);
         }
 
+        if(movePos.Count == 0)
+        {
+            for (int i = 0; i < tiles; i++)
+            {
+                Vector2Int prePos = cpu.BattlerMove.PiecePos;
+                prePos.x += i % 3 - 1;
+                prePos.y += i / 3 - 1;
+                if (prePos.x < 0 || prePos.x > 2) continue;
+                if (prePos.y < 0 || prePos.y > 2) continue;
+                movePos.Add(prePos);
+            }
+        }
+
         int rand = Random.Range(0, movePos.Count);
-        return movePos[rand];
-        
+        int pos = Calculator.Vector2IntToInt(movePos[rand]);
+
+        return pos;
     }
 
     // çUåÇÇ™ìñÇΩÇÈÇ©ÇÃîªíË

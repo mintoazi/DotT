@@ -48,7 +48,7 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (IsHand) handPosition = transform.position; // Œ³‚É–ß‚·‚Æ‚«‚ÌêŠ‚ğ•Û‘¶
-        Debug.Log(eventData.position);
+        //Debug.Log(eventData.position);
         defaultParent = transform.parent;
         transform.SetParent(defaultParent, false);
         canvasGroup.blocksRaycasts = false;

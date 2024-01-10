@@ -5,6 +5,8 @@ namespace Scenes
         TITLE,
         HOME,
         MATCHING,
-        BATTLE
+        BATTLE,
+        CPU_ROOM,
+        CPU_BATTLE
     }
 }

@@ -96,13 +96,14 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
         inRoom = true;
         if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
         {
+            Locator<CharacterSelectController>.Instance.EnemyHasJoined();
             Debug.Log(PhotonNetwork.MasterClient.UserId + "のロビーに入室しました。");
         }
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-
+        SceneLoader.Instance.Load(Scenes.Scene.HOME).Forget();
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
@@ -120,6 +121,7 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
     }
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
+        Locator<CharacterSelectController>.Instance.EnemyHasLeft();
         Debug.Log(otherPlayer.UserId + "が退出しました。");
     }
     private void ManagedUpdate()
