@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: barrier Shader
-  m_Shader: {fileID: -6465566751694194690, guid: fe72ec2a57caf0846abdbb7c462176d3,
+  m_Shader: {fileID: -6465566751694194690, guid: cf8e71a97f9e77e49b7bfe9351cc88ef,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -66,6 +66,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2D:
+        m_Texture: {fileID: 2800000, guid: f7c000252a3153d4cbae5a7f9e41041e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2DAsset_3e4ed15cb20a47ff9a4b1370871ec98d_Out_0_Texture2D:
