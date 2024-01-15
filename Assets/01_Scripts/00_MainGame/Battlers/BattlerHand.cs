@@ -17,7 +17,7 @@ public class BattlerHand : MonoBehaviour
     {
         card.transform.position = deckTransform.position;
         hands.Add(card);
-        Debug.Log(gameObject.name + "に" + card.Base.Name + "が追加された");
+        //Debug.Log(gameObject.name + "に" + card.Base.Name + "が追加された");
         card.transform.SetParent(handTransform);
     }
     // カード手札から除外する

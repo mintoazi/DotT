@@ -1,6 +1,8 @@
+using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static GameMaster;
 
 public class CpuController : MonoBehaviour
 {
@@ -49,10 +51,28 @@ public class CpuController : MonoBehaviour
         }
         return canUseCards[cardIndex];
     }
-    public Card ReDraw()
+    public Card RemoveCard()
     {
         List<Card> hands = cpu.Hand.Hands;
         return hands[Random.Range(0, hands.Count)];
+    }
+    public Card ReDraw()
+    {
+        bool isReDraw = cpu.CheckCanUseCard();
+        if (isReDraw) return null;
+        
+        Card removeCard = RemoveCard();
+        cpu.RemoveCard(removeCard.Base.Id);
+        DeleteCard(removeCard).Forget();
+
+        List<int> costs = cpu.Model.ReturnNotUseCost();
+        Card drawCard = Locator<CardGenerator>.Instance.ReDraw(costs, isEnemy: true);
+        return drawCard;
+    }
+    private async UniTask DeleteCard(Card card)
+    {
+        await UniTask.WaitForSeconds(0.5f);
+        card.Delete();
     }
     public Card PlaySupportCard()
     {
@@ -60,6 +80,7 @@ public class CpuController : MonoBehaviour
         // 属性一致=>使用済みコスト=>コストの低いカードの順番で出す。
         for (int i = 0; i < hands.Count; i++)
         {
+            Debug.Log("<color=green>" + hands[i].Base.Type + "</color>");
             if ((int)hands[i].Base.Type == cpu.Model.CharaType.Value) return hands[i];
             if (cpu.Model.IsCostUses[hands[i].Base.Cost].Value) return hands[i];
         }

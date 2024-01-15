@@ -96,7 +96,7 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
         inRoom = true;
         if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount)
         {
-            Locator<CharacterSelectController>.Instance.EnemyHasJoined();
+            EnemyHasJoined();
             Debug.Log(PhotonNetwork.MasterClient.UserId + "のロビーに入室しました。");
         }
     }
@@ -108,9 +108,16 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        EnemyHasJoined();
         Debug.Log(newPlayer.UserId + "が入室しました。");
     }
+    private void EnemyHasJoined()
+    {
+        Locator<CharacterSelectController>.Instance.EnemyHasJoined();
+        if (PhotonNetwork.IsMasterClient) photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, HostCharacter);
+        else photonView.RPC(nameof(EnemyChangeChara), RpcTarget.Others, HostCharacter);
 
+    }
     public void OnClickLeftRoom()
     {
         PhotonNetwork.Disconnect();

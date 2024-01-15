@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine.UI;
 using Unity.VisualScripting;
+using System;
 
 public class Battler : MonoBehaviour
 {
@@ -28,7 +29,6 @@ public class Battler : MonoBehaviour
     public bool IsWait { get; set; }
     public bool CanUseSupport { get; private set; }
     public bool IsMatchCharaType { get; private set; }
-    public bool OldIsMatchCharaType { get; private set; }
     public BattlerHand Hand { get => hand; }
     public BattlerMove BattlerMove { get => battlerMove; }
     public BattlerModel Model { get => model; }
@@ -39,11 +39,6 @@ public class Battler : MonoBehaviour
     {
         hand.Add(card);
         //card.OnClickCard = SelectedCard;
-    }
-    // カードを引く
-    public void Draw(Card card)
-    {
-        SetCardToHand(card);
     }
 
     // カードを選ぶ
@@ -61,6 +56,9 @@ public class Battler : MonoBehaviour
         if(isPlayCardPhase) Hand.SetSelectable(Model.GetUsedCosts());
         else Hand.SetSelectable(true);
         submitButton.gameObject.SetActive(true);
+        var cts = new CancellationTokenSource();
+        ActiveButton(cts.Token).Forget();
+
         while (true)
         {
             var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
@@ -68,9 +66,26 @@ public class Battler : MonoBehaviour
             if (selectCard.SelectedCard) break;
             else continue;
         }
+
         Hand.SetSelectable(false);
         submitButton.gameObject.SetActive(false);
         SetActivePanel(target: playCardPanel, isActive: false);
+    }
+
+    private async UniTask ActiveButton(CancellationToken token)
+    {
+        while (true)
+        {
+            if (selectCard.SelectedCard) submitButton.gameObject.SetActive(true);
+            else submitButton.gameObject.SetActive(false);
+            await UniTask.DelayFrame(1);
+            if (token.IsCancellationRequested)
+            {
+                Debug.Log("<color=red>InactiveButton</color>");
+                submitButton.gameObject.SetActive(false);
+                break;
+            }
+        }
     }
 
     /// <summary>
@@ -89,22 +104,25 @@ public class Battler : MonoBehaviour
 
         return Model.ReturnNotUseCost(); // 使っていないコストを返す
 
-        bool CheckCanUseCard()
-        {
-            List<Card> cards = hand.Hands;
-            
-            foreach (Card c in cards)
-            {
-                //Debug.Log(c.Base.Cost);
-                if (!Model.IsCostUses[c.Base.Cost].Value)
-                {
-                    Debug.Log("使用できるコスト" + c.Base.Cost);
-                    return true; // 使えるカードが見つかったら処理を抜ける
-                }
-            }
-            return false;
-        }
+        
     }
+
+    public bool CheckCanUseCard()
+    {
+        List<Card> cards = hand.Hands;
+
+        foreach (Card c in cards)
+        {
+            //Debug.Log(c.Base.Cost);
+            if (!Model.IsCostUses[c.Base.Cost].Value)
+            {
+                Debug.Log("使用できるコスト" + c.Base.Cost);
+                return true; // 使えるカードが見つかったら処理を抜ける
+            }
+        }
+        return false;
+    }
+
     private void CheckType(int type)
     {
         CanUseSupport = model.CharaType.Value == type;
@@ -160,10 +178,12 @@ public class Battler : MonoBehaviour
         AttackCard.Delete();
         AttackCard = null;
     }
-    public void ResetSupportCard()
+    public async UniTask ResetSupportCard()
     {
-        SupportCard.Delete();
+        Card card = SupportCard;
         SupportCard = null;
+        await UniTask.WaitForSeconds(0.5f);
+        card.Delete();
     }
 
     /// <summary>
@@ -177,14 +197,14 @@ public class Battler : MonoBehaviour
         return moved;
     }
 
-    public void Damage(List<Vector2Int> attackPos, int damage)
+    public int Damage(List<Vector2Int> attackPos, int damage)
     {
         //Debug.Log("ダメージを受ける側の現在地" + battlerMove.PiecePos);
 
-        for (int i = 0; i < attackPos.Count; i++)
-        {
-            //Debug.Log("ダメージを受ける地点k" + attackPos[i]);
-        }
+        //for (int i = 0; i < attackPos.Count; i++)
+        //{
+        //    Debug.Log("ダメージを受ける地点k" + attackPos[i]);
+        //}
         attackPos = Calculator.CalcReflection(attackPos);
         
         for (int i = 0; i < attackPos.Count; i++)
@@ -193,9 +213,11 @@ public class Battler : MonoBehaviour
             if (battlerMove.PiecePos == attackPos[i])
             {
                 Model.Damage(damage);
+                return damage;
                 //Debug.Log(damage + "ダメージ。");
             }
         }
+        return 0;
     }
 
    public void Attack()

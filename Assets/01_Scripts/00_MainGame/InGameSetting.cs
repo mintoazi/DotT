@@ -16,7 +16,7 @@ public class InGameSetting : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            settingPanel.SetActive(!settingPanel.activeSelf);
+            OnClickSetting();
         }
     }
     public void Hide()
@@ -26,6 +26,6 @@ public class InGameSetting : MonoBehaviour
 
     public void OnClickSetting()
     {
-        settingPanel.SetActive(true);
+        settingPanel.SetActive(!settingPanel.activeSelf);
     }
 }
