@@ -1,6 +1,9 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.Timeline;
 using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI;
 
 public class BattlerUI : MonoBehaviour
 {
@@ -26,6 +29,17 @@ public class BattlerUI : MonoBehaviour
 
     [SerializeField] private Text hpText;
     [SerializeField] private ParticleSystem particle;
+    [SerializeField] private PlayableDirector[] playableDirectors;
+    [SerializeField]
+    private Text[] addValues;
+
+    private enum UI_Index 
+    {
+        HP,
+        Attack,
+        Defence,
+        Cost
+    }
 
     public void UpdateCharaType(int charaType)
     {
@@ -44,16 +58,13 @@ public class BattlerUI : MonoBehaviour
         else return;
     }
 
-    public void UpdateType(int type)
-    {
-        typeImage.sprite = typeSprite[type];
-    }
-
-    public void UpdateHP(int hp)
+    public void UpdateHP(int current)
     {
         int old = int.Parse(hpText.text);
-        if (old < hp) HealEffect();
-        hpText.text = hp.ToString();
+        if (old < current) HealEffect();
+        // 数値変更エフェクト
+        UpdateValueEffect(UI_Index.HP, old, current);
+        hpText.text = current.ToString();
     }
 
     public void DamageEffect(bool isDamage)
@@ -62,9 +73,48 @@ public class BattlerUI : MonoBehaviour
         else return;
     }
 
-    public void UpdateAttackBuff(int value) => buffText[(int)Buffs.Attack].text = value.ToString();
-    public void UpdateDefenceBuff(int value) => buffText[(int)Buffs.Defence].text = value.ToString();
-    public void UpdateCostBuff(int value) => buffText[(int)Buffs.Cost].text = value.ToString();
+    public void UpdateAttackBuff(int value) 
+    {
+        // 数値変更エフェクト
+        UpdateValueEffect(UI_Index.Attack, int.Parse(buffText[(int)Buffs.Attack].text), current: value);
+        buffText[(int)Buffs.Attack].text = value.ToString();
+    } 
+    public void UpdateDefenceBuff(int value)
+    {
+        // 数値変更エフェクト
+        UpdateValueEffect(UI_Index.Defence, int.Parse(buffText[(int)Buffs.Defence].text), current: value);
+        buffText[(int)Buffs.Defence].text = value.ToString();
+    }
+    public void UpdateCostBuff(int value)
+    {
+        // 数値変更エフェクト
+        UpdateValueEffect(UI_Index.Cost, int.Parse(buffText[(int)Buffs.Cost].text), current: value);
+        buffText[(int)Buffs.Cost].text = value.ToString();
+    }
+
+    private void UpdateValueEffect(UI_Index index, int old, int current)
+    {
+        playableDirectors[(int)index].Stop();
+        int diff =  current - old;
+        string s;
+
+        if (diff > 0)
+        {
+            s = "+" + diff.ToString();
+        }
+        else if(diff < 0)
+        {
+            s = "-" + Mathf.Abs(diff).ToString();
+        }
+        else
+        {
+            s = "0";
+        }
+
+        Debug.Log("<color=red> UI </color>");
+        addValues[(int)index].text = s;
+        playableDirectors[(int)index].Play();
+    }
 
     private async UniTask ShakeChara(float duration, float magnitude)
     {

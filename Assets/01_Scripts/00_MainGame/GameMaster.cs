@@ -27,6 +27,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     bool isEnemyAttacked = false;
     bool isEnemyUsedSupport = false;
     bool isEnemyReDraw = false;
+    bool isEnemyTurn = false;
     float submitTime = 0f;
     float enemySubmitTime = 0f;
 
@@ -70,7 +71,8 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private void ManagedUpdate()
     {
         if (CardGenerator.IsLoadingCSV) return; // カードデータ読み込み中は処理しない
-
+        if (isEnemyTurn) waitPanel.SetActive(true);
+        else waitPanel.SetActive(false);
         if (isPhase) return;
         isPhase = true;
         switch (phase)
@@ -167,7 +169,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         for (int i = currentCards; i < startCards; i++)
         {
             Card card = Locator<CardGenerator>.Instance.Draw(false);
-            player.Draw(card);
+            player.SetCardToHand(card);
 
             if (isOnline) photonView.RPC(nameof(Draw), RpcTarget.Others, card.Base.Id);
         }
@@ -177,7 +179,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
             for (int i = currentCards; i < startCards; i++)
             {
                 Card c = Locator<CardGenerator>.Instance.Draw(false); // あとでtrueに変える
-                enemy.Draw(c);
+                enemy.SetCardToHand(c);
             }
         }
         await player.Hand.ResetPositions();
@@ -198,22 +200,35 @@ public class GameMaster : MonoBehaviourPunCallbacks
         isPhase = true;
         player.IsWait = false;
         List<int> costs = await player.ReDraw();
-        if (costs == null)
+        if (costs != null)
         {
-            await SetPhase(Phase.PlayCard);
-            return;
+            Card card = Locator<CardGenerator>.Instance.ReDraw(costs, isEnemy: false);
+
+            int removedCardID = player.RecentCard.Base.Id;
+            int drewCardID = card.Base.Id;
+
+            if (isOnline) photonView.RPC(nameof(ReDraw), RpcTarget.Others, removedCardID, drewCardID);
+            player.SetCardToHand(card);
+            await player.Hand.ResetPositions();
         }
-        Card card = Locator<CardGenerator>.Instance.ReDraw(costs, isEnemy: false);
+        
+        if(!isOnline)
+        {
+            Card enemyCard = cpu.ReDraw();
+            if (enemyCard != null)
+            {
+                enemy.SetCardToHand(enemyCard);
+                enemy.Hand.ResetPositions().Forget();
+            }
+            isEnemyReDraw = true;
+        }
+       
 
-        int removedCardID = player.RecentCard.Base.Id;
-        int drewCardID = card.Base.Id;
-
-        photonView.RPC(nameof(ReDraw), RpcTarget.Others, removedCardID, drewCardID);
-        player.SetCardToHand(card);
-        await player.Hand.ResetPositions();
-
+        // 相手の選択待ち
+        isEnemyTurn = true;
         await UniTask.WaitUntil(()=>isEnemyReDraw);
-
+        isEnemyTurn = false;
+        
         await SetPhase(Phase.PlayCard);
     }
 
@@ -257,12 +272,10 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
     private async UniTask PlaySupportCard_CPU()
     {
-        float delay = 1.0f;
         while (enemy.CanUseSupport)
         {
             await enemy.PlaySupportCard(cpu.PlaySupportCard().Base.Id); // カードオープンまで待つ
-            await UniTask.WaitForSeconds(delay); // 表示猶予時間
-            enemy.ResetSupportCard(); // カードの削除
+            await enemy.ResetSupportCard(); // カードの削除
         }
         isEnemyUsedSupport = true;
     }
@@ -274,8 +287,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
     /// <returns></returns>
     private async UniTask PlaySupportPhase()
     {
-        if (!isOnline && submitTime > enemySubmitTime) await PlaySupportCard_CPU();
-
+        if (!isOnline && submitTime > enemySubmitTime)
+        {
+            isEnemyTurn = true;
+            await PlaySupportCard_CPU();
+            isEnemyTurn = false;
+        }
         isPhase = true;
         player.IsWait = false;
 
@@ -285,8 +302,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
             Debug.Log("サポートカードの使用");
             if(isOnline) photonView.RPC(nameof(PlaySupportCard), RpcTarget.Others, player.SupportCard.Base.Id); // 相手に使用したサポートを送信
 
-            await UniTask.WaitForSeconds(1.0f);
-            player.ResetSupportCard();
+            await player.ResetSupportCard();
         }
 
         player.IsWait = true;
@@ -336,7 +352,9 @@ public class GameMaster : MonoBehaviourPunCallbacks
     /// <returns></returns>
     private async UniTask CheckTurnPhase()
     {
+        isEnemyTurn = true;
         await UniTask.WaitUntil(() => isEnemyUsedSupport);
+        isEnemyTurn = false;
         await SetPhase(Phase.CheckCard);
         await enemy.AttackCard.OpenCard(); // 敵のカードをオープン
         
@@ -348,12 +366,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
             if (submitTime < enemySubmitTime) await SetPhase(Phase.Move);
             else
             {
-                if(!isOnline)
+                await SetPhase(Phase.Wait);
+                if (!isOnline)
                 {
-                    Move_CPU();
+                    await Move_CPU();
                     await SetPhase(Phase.Move);
                 }
-                await SetPhase(Phase.Wait);
             }
             // 引き分け処理
         }
@@ -367,17 +385,19 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
             if (!isOnline)
             {
-                Move_CPU();
+                await Move_CPU();
                 await SetPhase(Phase.Move);
             }
         }
         player.IsWait = true;
     }
 
-    private void Move_CPU()
+    private async UniTask Move_CPU()
     {
+        await UniTask.WaitForSeconds(0.5f);
         Move(cpu.MovePos());
         AttackEffect(enemy.AttackCard.Base.Id, enemy.IsMatchCharaType);
+        await CheckVictoryOrDefeat();
     }
 
     private async UniTask MovePhase()
@@ -440,10 +460,10 @@ public class GameMaster : MonoBehaviourPunCallbacks
         if (isOnline) photonView.RPC(nameof(AttackEffect), RpcTarget.Others, id, isMatch);
 
         // Damage
-        enemy.Damage(attackPos, damage);
-        if (player.OldIsMatchCharaType && player.Model.CharaType.Value == (int)CardTypeM.Curse)
+        int reciveDamage = enemy.Damage(attackPos, damage);
+        if (player.Model.CharaType.Value == (int)CardTypeM.Curse && player.Model.CharaType.Value == (int)card.Base.Type)
         {
-            player.Model.Heal(damage);
+            player.Model.Heal(reciveDamage);
             if (isOnline) photonView.RPC(nameof(Heal), RpcTarget.Others, damage);
         }
 
@@ -465,7 +485,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
             if(isOnline) photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Move);
             else
             {
-                Move_CPU();
+                await Move_CPU();
                 await SetPhase(Phase.End);
             }
         }
@@ -492,7 +512,11 @@ public class GameMaster : MonoBehaviourPunCallbacks
         if (enemy.Model.Health.Value <= 0)
         {
             await SetPhase(Phase.Win);
-            if (isOnline) photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Lose);
+            return;
+        }
+        if(player.Model.Health.Value <= 0)
+        {
+            await SetPhase(Phase.Lose);
             return;
         }
         //Debug.Log(currentBattler.IsCostUses.All(result => result.Value == false));
@@ -518,14 +542,17 @@ public class GameMaster : MonoBehaviourPunCallbacks
         inGameSetting.Hide();
     }
 
+    [SerializeField] private GameObject waitPanel;
     private void WaitPhase()
     {
+        waitPanel.SetActive(true);
         player.IsWait = true;
     }
     
     [PunRPC]
     private async UniTask SetPhase(Phase phase)
     {
+        waitPanel.SetActive(false);
         if (this.phase == Phase.Win || this.phase == Phase.Lose) return;
         this.phase = phase;
         //Debug.Log(phase.ToString() + "フェーズ");
@@ -537,7 +564,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private void Draw(int id)
     {
         Card card = Locator<CardGenerator>.Instance.ChoiceDraw(id, isEnemy: true);
-        enemy.Draw(card);
+        enemy.SetCardToHand(card);
     }
     [PunRPC]
     private void ResetHandPosition()
@@ -565,8 +592,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         //enemy.Model.SetHp(health);
         Debug.Log("相手のサポート使用");
         await enemy.PlaySupportCard(id);
-        await UniTask.WaitForSeconds(1.0f);
-        enemy.ResetSupportCard();
+        await enemy.ResetSupportCard();
     }
     [PunRPC]
     private void Move(int pos)
@@ -609,8 +635,14 @@ public class GameMaster : MonoBehaviourPunCallbacks
         List<Vector2Int> calcAttackPos = Calculator.CalcAttackPosition(enemy.BattlerMove.PiecePos,
                                                   attackPos,
                                                   card.AttackAhead);
-        player.Damage(calcAttackPos, damage);
-
+        int recieveDamage = player.Damage(calcAttackPos, damage);
+        if (!isOnline)
+        {
+            if (enemy.Model.CharaType.Value == (int)CardTypeM.Curse && enemy.Model.CharaType.Value == (int)card.Type)
+            {
+                enemy.Model.Heal(recieveDamage);
+            }
+        }
         calcAttackPos = Calculator.CalcReflection(calcAttackPos);
         Locator<Attack>.Instance.
             PlayEffect(calcAttackPos, type, isMatch, isEnemy: true);

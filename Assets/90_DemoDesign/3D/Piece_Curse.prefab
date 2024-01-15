@@ -241,11 +241,51 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -4027066018579318801, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.0129392585
+      objectReference: {fileID: 0}
+    - target: {fileID: -4027066018579318801, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.011247718
+      objectReference: {fileID: 0}
+    - target: {fileID: -4027066018579318801, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.8063367
+      objectReference: {fileID: 0}
+    - target: {fileID: -4027066018579318801, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.59120834
+      objectReference: {fileID: 0}
+    - target: {fileID: -4027066018579318801, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 72.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -4027066018579318801, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 178.558
+      objectReference: {fileID: 0}
+    - target: {fileID: -4027066018579318801, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0.541
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 62134ae29657c114eb1a0f641026518f,
         type: 3}
       propertyPath: m_Name
       value: fox
       objectReference: {fileID: 0}
+    - target: {fileID: 8417361359673230750, guid: 62134ae29657c114eb1a0f641026518f,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 232caa8e6ee29cb46aaaf5d223681d52, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 8934777400606672865, guid: 62134ae29657c114eb1a0f641026518f, type: 3}
