@@ -17,7 +17,7 @@ public class CardMovement : MonoBehaviour, IDragHandler, IBeginDragHandler, IEnd
     private bool isHand = true;
 
     private CanvasGroup canvasGroup;
-    private Vector3 selectCardSize = new Vector3(1.5f, 1.5f, 1.5f);
+    private Vector3 selectCardSize = new Vector3(1.2f, 1.2f, 1.2f);
     private Vector3 handPosition;
     private float moveTime = 0.2f;
 

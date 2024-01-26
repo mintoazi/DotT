@@ -1,0 +1,17 @@
+アリクイ.png
+size:1394,894
+filter:Linear,Linear
+pma:true
+しっぽ
+bounds:925,397,495,315
+rotate:90
+体
+bounds:2,2,890,921
+rotate:90
+口
+bounds:1242,637,150,255
+目
+bounds:925,55,139,24
+頭
+bounds:925,81,314,429
+rotate:90

@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Home;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Playables;
@@ -19,12 +20,15 @@ public class OnCursor : MonoBehaviour, IPointerEnterHandler, IPointerClickHandle
     private float clickedSize;
     [SerializeField]
     private Home.Buttons myButton;
+    [SerializeField]
+    private HomeManager homeManager;
 
     bool onClicked = false;
 
     private void Update() { } // Inspectorï\é¶óp
     public void OnPointerClick(PointerEventData eventData)
     {
+        Debug.Log(onClicked);
         // 1âÒñ⁄ÇÃÇ›èàóù
         if (onClicked) return;
         onClicked = true;
@@ -36,6 +40,7 @@ public class OnCursor : MonoBehaviour, IPointerEnterHandler, IPointerClickHandle
     {
         float currentTime = 0f;
         float defSize = buttonBase.localScale.x;
+        float defOutline = uiOutline.OutlineWidth;
         bool flash = true;
 
         uiOutline.ResizeOutline(flashOutlineWidth, flashTime).Forget();
@@ -59,9 +64,18 @@ public class OnCursor : MonoBehaviour, IPointerEnterHandler, IPointerClickHandle
                 SceneLoader.Instance.Load(Scenes.Scene.MATCHING).Forget();
                 break;
             case Home.Buttons.B_CPU:
-                SceneLoader.Instance.Load(Scenes.Scene.CPU_ROOM).Forget();
+                homeManager.ToCPU();
+                //SceneLoader.Instance.Load(Scenes.Scene.CPU_ROOM).Forget();
                 break;
         }
+        Init(defOutline);
+    }
+
+    private void Init(float defOutline)
+    {
+        buttonBase.localScale = Vector3.one;
+        uiOutline.ResizeOutline(defOutline, 0).Forget();
+        onClicked = false;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

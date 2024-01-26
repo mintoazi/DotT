@@ -7,6 +7,14 @@
       "dependencies": {},
       "hash": "cfe509a55602ba5be6df7fa0468b10298b8a053d"
     },
+    "com.esotericsoftware.spine.urp-shaders": {
+      "version": "file:C:/Users/t-suzuki/Downloads/com.esotericsoftware.spine.urp-shaders-4.1-2019.1",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.render-pipelines.universal": "7.1.5"
+      }
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,

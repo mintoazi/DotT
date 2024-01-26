@@ -19,6 +19,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     [SerializeField] InGameSetting inGameSetting;
     [SerializeField] CutInController cutInController;
     [SerializeField] DisplayCharacterInfo displayCharacterInfo;
+    [SerializeField] CostJudge costJudge;
     private int turns = 0;
 
     bool isOnline = false;
@@ -136,7 +137,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
     {
         int firstType, secondType;
         isPhase = true;
-        if (PhotonNetwork.IsMasterClient)
+        if (!isOnline)
+        {
+            firstType = PlayerData.Instance.PlayerChara;
+            secondType = PlayerData.Instance.EnemyChara;
+        }
+        else if (PhotonNetwork.IsMasterClient)
         {
             firstType = OnlineMenuManager.HostCharacter;
             secondType = OnlineMenuManager.GuestCharacter;
@@ -178,7 +184,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
             currentCards = enemy.Hand.Hands.Count;
             for (int i = currentCards; i < startCards; i++)
             {
-                Card c = Locator<CardGenerator>.Instance.Draw(false); // あとでtrueに変える
+                Card c = Locator<CardGenerator>.Instance.Draw(true); // あとでtrueに変える
                 enemy.SetCardToHand(c);
             }
         }
@@ -222,8 +228,8 @@ public class GameMaster : MonoBehaviourPunCallbacks
             }
             isEnemyReDraw = true;
         }
-       
-
+         else photonView.RPC(nameof(ReDrawed), RpcTarget.Others);
+        
         // 相手の選択待ち
         isEnemyTurn = true;
         await UniTask.WaitUntil(()=>isEnemyReDraw);
@@ -359,37 +365,53 @@ public class GameMaster : MonoBehaviourPunCallbacks
         await enemy.AttackCard.OpenCard(); // 敵のカードをオープン
         
         // cost計算
-        int pCost = player.AttackCard.Base.Cost - player.Model.CostBuff.Value; 
-        int eCost = enemy.AttackCard.Base.Cost - enemy.Model.CostBuff.Value;
-        if (pCost == eCost)
-        {
-            if (submitTime < enemySubmitTime) await SetPhase(Phase.Move);
-            else
-            {
-                await SetPhase(Phase.Wait);
-                if (!isOnline)
-                {
-                    await Move_CPU();
-                    await SetPhase(Phase.Move);
-                }
-            }
-            // 引き分け処理
-        }
-        else if(pCost < eCost)
+        int pCost = Mathf.Max(1, player.AttackCard.Base.Cost + 1 - player.Model.CostBuff.Value); 
+        int eCost = Mathf.Max(1, enemy.AttackCard.Base.Cost + 1 - enemy.Model.CostBuff.Value);
+
+        costJudge.gameObject.SetActive(true);
+        costJudge.Set(player.AttackCard, player.Model.CostBuff.Value, pCost, enemy.AttackCard, enemy.Model.CostBuff.Value, eCost);
+        costJudge.SetTimer(submitTime, enemySubmitTime);
+
+        CostJudge.Winner winner = CheckMoveFirst();
+
+        await costJudge.StartJudge(winner);
+        costJudge.gameObject.SetActive(false);
+
+        if (winner == CostJudge.Winner.Player)
         {
             await SetPhase(Phase.Move);
         }
         else
         {
             await SetPhase(Phase.Wait);
-
             if (!isOnline)
             {
                 await Move_CPU();
                 await SetPhase(Phase.Move);
             }
         }
+
         player.IsWait = true;
+
+        CostJudge.Winner CheckMoveFirst()
+        {
+            if (pCost == eCost)
+            {
+                if (submitTime < enemySubmitTime) return CostJudge.Winner.Player;
+                else
+                {
+                    return CostJudge.Winner.Enemy;
+                }
+            }
+            else if (pCost < eCost)
+            {
+                return CostJudge.Winner.Player;
+            }
+            else
+            {
+                return CostJudge.Winner.Enemy;
+            }
+        }
     }
 
     private async UniTask Move_CPU()
@@ -499,6 +521,8 @@ public class GameMaster : MonoBehaviourPunCallbacks
         isEnemyAttacked = false;
         isEnemySubmited = false;
         isEnemyUsedSupport = false;
+        isEnemyReDraw = false;
+
         player.Model.ResetBuffs(); // バフのリセット
         enemy.Model.ResetBuffs();　// バフのリセット
 
@@ -577,6 +601,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
         enemy.RemoveCard(removeID);
         Draw(drawID);
         enemy.Hand.ResetPositions().Forget();
+        ReDrawed();
+    }
+    [PunRPC]
+    private void ReDrawed()
+    {
+        isEnemyReDraw = true;
     }
     
     [PunRPC]
