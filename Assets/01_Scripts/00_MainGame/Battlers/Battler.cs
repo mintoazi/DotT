@@ -63,10 +63,12 @@ public class Battler : MonoBehaviour
         {
             var buttonEvent = submitButton.onClick.GetAsyncEventHandler(CancellationToken.None);
             await buttonEvent.OnInvokeAsync();
+            buttonEvent.Dispose();
             if (selectCard.SelectedCard) break;
             else continue;
         }
-
+        cts.Cancel();
+        cts.Dispose();
         Hand.SetSelectable(false);
         submitButton.gameObject.SetActive(false);
         SetActivePanel(target: playCardPanel, isActive: false);
@@ -103,8 +105,6 @@ public class Battler : MonoBehaviour
         SelectCard.DeleteCard(); // 選択したカードの削除
 
         return Model.ReturnNotUseCost(); // 使っていないコストを返す
-
-        
     }
 
     public bool CheckCanUseCard()
@@ -143,6 +143,7 @@ public class Battler : MonoBehaviour
 
         AttackCard = SelectCard.SelectedCard; // 使用したカードを代入
         CheckType((int)AttackCard.Base.Type); // サポートカードを使えるかどうか
+        if(CanUseSupport) model.AddBuff();
         RemoveCard(SelectCard.SelectedCard);
     }
 
@@ -164,7 +165,7 @@ public class Battler : MonoBehaviour
         SupportCard = SelectCard.SelectedCard;
 
         CheckType((int)SupportCard.Base.Type);
-        if (IsMatchCharaType) model.AddBuff();
+        model.AddBuff();
         
         Model.UseSupportCard(SupportCard.Base.Cost); 
         RemoveCard(SupportCard);
@@ -251,6 +252,7 @@ public class Battler : MonoBehaviour
         RecentCard = SelectCard.SelectedCard;
         AttackCard = SelectCard.SelectedCard;
         CheckType((int)AttackCard.Base.Type);
+        if (CanUseSupport) model.AddBuff();
     }
     public async UniTask PlaySupportCard(int id)
     {
@@ -260,7 +262,7 @@ public class Battler : MonoBehaviour
         await SupportCard.OpenCard();
         Model.UseSupportCard(SupportCard.Base.Cost);
         CheckType((int)SupportCard.Base.Type);
-        if (IsMatchCharaType) model.AddBuff();
+        model.AddBuff();
     }
 
     [SerializeField] Transform attackPosition = null;
@@ -274,7 +276,7 @@ public class Battler : MonoBehaviour
     {
         float moveTime = 0.2f;
         if (card == null) return;
-        Vector3 size = new Vector3(1.5f, 1.5f, 1.5f);
+        Vector3 size = new Vector3(1.2f, 1.2f, 1.2f);
 
         card.MoveCard(pos, moveTime).Forget();
         await card.ResizeCard(size, moveTime);

@@ -63,5 +63,6 @@ public enum CardTypeM
 {
     Curse, 
     Tech, 
-    Magic
+    Magic,
+    Random
 }

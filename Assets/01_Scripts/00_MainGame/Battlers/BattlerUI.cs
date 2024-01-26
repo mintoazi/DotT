@@ -1,9 +1,10 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.Timeline;
 using UnityEngine.UI;
-using static UnityEngine.Rendering.DebugUI;
+using Spine.Unity;
+using Spine;
+using System.Runtime.CompilerServices;
 
 public class BattlerUI : MonoBehaviour
 {
@@ -33,6 +34,11 @@ public class BattlerUI : MonoBehaviour
     [SerializeField]
     private Text[] addValues;
 
+    [SerializeField] private SkeletonDataAsset[] skeletons;
+    [SerializeField] private string[] stateName;
+    [SerializeField] private SkeletonGraphic skeletonAnimation;
+    private Spine.AnimationState spineAnimationState;
+
     private enum UI_Index 
     {
         HP,
@@ -41,6 +47,17 @@ public class BattlerUI : MonoBehaviour
         Cost
     }
 
+    private enum StateName
+    {
+        Idle,
+        Win,
+        Damage,
+    }
+
+    private void Awake()
+    {
+        spineAnimationState = skeletonAnimation.AnimationState;
+    }
     public void UpdateCharaType(int charaType)
     {
         battlerSkin.sprite = battlerSprite[charaType];
@@ -50,6 +67,9 @@ public class BattlerUI : MonoBehaviour
         {
             costsImage[i].sprite = costsType[charaType];
         }
+
+        skeletonAnimation.skeletonDataAsset = skeletons[charaType];
+        PlayIdleAnimation(null);
     }
 
     public void UseCost(int cost, bool isUse)
@@ -69,7 +89,11 @@ public class BattlerUI : MonoBehaviour
 
     public void DamageEffect(bool isDamage)
     {
-        if (isDamage) ShakeChara(0.3f, 20).Forget();
+        if (isDamage)
+        {
+            ShakeChara(0.3f, 20).Forget();
+            PlayAnimation((int)StateName.Damage, isLoop: false);
+        }
         else return;
     }
 
@@ -135,5 +159,22 @@ public class BattlerUI : MonoBehaviour
     private void HealEffect()
     {
         particle.Play();
+    }
+
+    private void Win()
+    {
+        PlayAnimation((int)StateName.Win, false);
+    }
+
+    private void PlayAnimation(int stateIndex, bool isLoop)
+    {
+        string state = stateName[stateIndex];
+        TrackEntry trackEntry = spineAnimationState.SetAnimation(0, state, isLoop);
+        trackEntry.Complete += PlayIdleAnimation;
+    }
+    private void PlayIdleAnimation(TrackEntry trackEntry)
+    {
+        string state = stateName[(int)StateName.Idle];
+        spineAnimationState.SetAnimation(0, state, true);
     }
 }

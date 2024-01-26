@@ -1,9 +1,5 @@
-using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using Cysharp.Threading.Tasks;
-using System.Threading;
 
 public class Element
 {
@@ -90,7 +86,11 @@ public class CardGenerator : MonoBehaviour
         {
             if (type == "Curse") return CardTypeM.Curse;
             else if (type == "Tech") return CardTypeM.Tech;
-            else return CardTypeM.Magic;
+            else if (type == "Magic")return CardTypeM.Magic;
+            else
+            {
+                return (CardTypeM)Random.Range(0, 3);
+            }
             //else Debug.LogError("–¢’m‚ÌElementType‚Å‚·"); 
         }
     }
