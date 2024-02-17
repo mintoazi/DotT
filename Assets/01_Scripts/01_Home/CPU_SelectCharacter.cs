@@ -13,9 +13,11 @@ public class CPU_SelectCharacter : MonoBehaviour
     public void SelectPlayerChara(int num)
     {
         playerChara.sprite = characters[num];
+        PlayerData.Instance.PlayerChara = num;
     }
     public void SelectEnemyChara(int num)
     {
         enemyChara.sprite = characters[num];
+        PlayerData.Instance.EnemyChara = num;
     }
 }

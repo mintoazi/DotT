@@ -1,12 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerData : SingletonMonoBehaviour<PlayerData>
 {
     public static PlayerData instance;
-    public int PlayerChara = 0;
-    public int EnemyChara = 0;
+    private int playerChara = 0;
+    private int enemyChara = 0;
+    private int playerDeck = 0;
+    private int enemyDeck = 0;
+    public int PlayerChara
+    {
+        get { Debug.Log(playerChara); return playerChara;  }
+        set { playerChara = value; }
+    }
+    public int EnemyChara
+    {
+        get { Debug.Log(enemyChara); return enemyChara; }
+        set { enemyChara = value; Debug.Log(enemyChara); }
+    }
+
+    public int PlayerDeck { get => playerDeck; private set => playerDeck = value; }
+    public int EnemyDeck { get => enemyDeck; private set => enemyDeck = value; }
+
     public override void CheckSingleton()
     {
         if (instance == null)
@@ -27,5 +41,15 @@ public class PlayerData : SingletonMonoBehaviour<PlayerData>
     public void PushEnemyChara(int num)
     {
         EnemyChara = num;
+    }
+
+    public void PushPlayerDeck(int num)
+    {
+        PlayerDeck = num;
+    }
+
+    public void PushEnemyDeck(int num)
+    {
+        EnemyDeck = num;
     }
 }

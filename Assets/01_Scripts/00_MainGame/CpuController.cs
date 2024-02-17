@@ -26,6 +26,10 @@ public class CpuController : MonoBehaviour
     // ˆÚ“®‚Å‚«‚éƒ^ƒCƒ‹‚Ì”
     private const int tiles = 9;
 
+    private void Start()
+    {
+        currentDifficulty = (Difficulty)cpu.Model.CharaType.Value;
+    }
     public Card PlayCard()
     {
         List<Card> hands = cpu.Hand.Hands;

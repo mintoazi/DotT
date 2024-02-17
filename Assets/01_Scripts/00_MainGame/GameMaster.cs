@@ -6,6 +6,7 @@ using Photon.Pun;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using System.Threading;
 // オープンカード×２バグ
 // カード提出時　バグ　原因不明
 public class GameMaster : MonoBehaviourPunCallbacks
@@ -23,7 +24,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private int turns = 0;
 
     bool isOnline = false;
-
+    bool isEnd = false;
     bool isEnemySubmited = false;
     bool isEnemyAttacked = false;
     bool isEnemyUsedSupport = false;
@@ -136,22 +137,32 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private async UniTask InitPhase()
     {
         int firstType, secondType;
+        int firstDeck, secondDeck;
         isPhase = true;
         if (!isOnline)
         {
             firstType = PlayerData.Instance.PlayerChara;
             secondType = PlayerData.Instance.EnemyChara;
+            firstDeck = PlayerData.Instance.PlayerDeck;
+            secondDeck = PlayerData.Instance.EnemyDeck;
         }
         else if (PhotonNetwork.IsMasterClient)
         {
             firstType = OnlineMenuManager.HostCharacter;
             secondType = OnlineMenuManager.GuestCharacter;
+            firstDeck = OnlineMenuManager.HostDeck;
+            secondDeck = OnlineMenuManager.GuestDeck;
         }
         else
         {
             firstType = OnlineMenuManager.GuestCharacter;
             secondType = OnlineMenuManager.HostCharacter;
+            firstDeck = OnlineMenuManager.HostDeck;
+            secondDeck = OnlineMenuManager.GuestDeck;
         }
+
+        Locator<CardGenerator>.Instance.GenerateCard(firstDeck, secondDeck);
+        //Debug.Log(firstType);
         player.Model.Init(20, firstType);
         player.BattlerMove.Init(firstType);
         enemy.Model.Init(20, secondType);
@@ -268,7 +279,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
     private async UniTask PlayCard_CPU()
     {
-        float waitTime = 1.0f;
+        float waitTime = 2.0f;
         await UniTask.WaitForSeconds(waitTime);
         int id = cpu.PlayCard().Base.Id;
         enemy.PlayCard(id);
@@ -416,10 +427,12 @@ public class GameMaster : MonoBehaviourPunCallbacks
 
     private async UniTask Move_CPU()
     {
+        if (isEnd) return;
         await UniTask.WaitForSeconds(0.5f);
         Move(cpu.MovePos());
         AttackEffect(enemy.AttackCard.Base.Id, enemy.IsMatchCharaType);
         await CheckVictoryOrDefeat();
+        await UniTask.WaitForSeconds(2f);
     }
 
     private async UniTask MovePhase()
@@ -490,8 +503,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         }
 
         player.ResetAttackCard();
-        await UniTask.Delay(500); // エフェクト終了待ち
-
+        await UniTask.WaitForSeconds(2f); // エフェクト終了待ち
         await SetPhase(Phase.Wait);
         await CheckVictoryOrDefeat();
 
@@ -508,6 +520,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
             else
             {
                 await Move_CPU();
+                await UniTask.WaitForSeconds(2f); // エフェクト終了待ち
                 await SetPhase(Phase.End);
             }
         }
@@ -536,11 +549,13 @@ public class GameMaster : MonoBehaviourPunCallbacks
         if (enemy.Model.Health.Value <= 0)
         {
             await SetPhase(Phase.Win);
+            isEnd = true;
             return;
         }
         if(player.Model.Health.Value <= 0)
         {
             await SetPhase(Phase.Lose);
+            isEnd = true;
             return;
         }
         //Debug.Log(currentBattler.IsCostUses.All(result => result.Value == false));
@@ -550,11 +565,13 @@ public class GameMaster : MonoBehaviourPunCallbacks
         if (player.Model.Health.Value > enemy.Model.Health.Value)
         {
             await SetPhase(Phase.Win);
+            isEnd = true;
             if (isOnline) photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Lose);
         }
         else
         {
             await SetPhase(Phase.Lose);
+            isEnd = true;
             if (isOnline) photonView.RPC(nameof(SetPhase), RpcTarget.Others, Phase.Win);
         }
     }
@@ -709,7 +726,7 @@ public class GameMaster : MonoBehaviourPunCallbacks
         if (isOnline)
         {
             PhotonNetwork.Disconnect();
-            Destroy(OnlineMenuManager.onlineManager.gameObject);
+            //if(OnlineMenuManager.onlineManager.gameObject != null) Destroy(OnlineMenuManager.onlineManager.gameObject);
         }
     }
 }

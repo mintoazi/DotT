@@ -6,6 +6,7 @@ public class CardBase
 {
     // カードの基礎データ
     [SerializeField] int id;
+    [SerializeField] int id2;
     [SerializeField] string name;
     
     [SerializeField] string description;
@@ -27,6 +28,7 @@ public class CardBase
     public string Name { get => name; }
     public CardTypeM Type { get => type; }
     public int Id { get => id; }
+    public int Id2 { get => id2; }
     public string Description { get => description; }
     public Sprite Icon { get => icon; }
     public int Cost { get => cost; }
@@ -38,13 +40,14 @@ public class CardBase
     public List<Vector2Int> AttackPos { get => attackPos; }
     public List<Vector2Int> SAttackPos { get => sAttackPos; }
     public CardBase(
-          int id, string name, string desc, string sDesc, string supDesc, int cost,
+          int id, int id2, string name, string desc, string sDesc, string supDesc, int cost,
           int attackAhead,
           List<Vector2Int> attackPos, int damage,
           List<Vector2Int> sAttackPos, int sDamage, 
           CardTypeM type) 
     { 
         this.id = id;
+        this.id2 = id2;
         this.name = name;
         this.description = desc;
         this.sDescripiton = sDesc;
