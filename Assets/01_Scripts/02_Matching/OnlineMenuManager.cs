@@ -1,10 +1,8 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
-using UnityEngine.UI;
 using UniRx;
 using UniRx.Triggers;
-using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
 
 public class OnlineMenuManager : MonoBehaviourPunCallbacks
@@ -12,6 +10,8 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
     public static OnlineMenuManager onlineManager;
     public static int HostCharacter = 0;
     public static int GuestCharacter = 0;
+    public static int HostDeck = 0;
+    public static int GuestDeck = 0;
     // ボタンを押したらマッチング開始
     // ルームIDでマッチング
     // なければ自分で作る
@@ -85,6 +85,7 @@ public class OnlineMenuManager : MonoBehaviourPunCallbacks
         RoomOptions options = new RoomOptions();
         options.PublishUserId = true;
         options.MaxPlayers = 2;
+        //if (PhotonNetwork.CurrentRoom.MaxPlayers == PhotonNetwork.CurrentRoom.PlayerCount) return;
         PhotonNetwork.JoinOrCreateRoom(roomIdText, options, TypedLobby.Default);
         Debug.Log("ロビーに入室しました。");
         

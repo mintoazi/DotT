@@ -38,7 +38,7 @@ public class BattlerMove : MonoBehaviour
 
     public void UpdatePieceType(int type)
     {
-        pieceRenderer.material = materials[type];
+        //pieceRenderer.material = materials[type];
     }
 
     public void SetPosition(Vector3 pos)

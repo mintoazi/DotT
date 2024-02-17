@@ -20,6 +20,8 @@ namespace Home
        public void ToCPU()
         {
             animator.SetInteger("State", (int)Buttons.B_CPU);
+            PlayerData.Instance.PlayerChara = 0;
+            PlayerData.Instance.EnemyChara = 0;
         }
 
         public void ToHome()

@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -107,7 +108,9 @@ public class BattlerModel : MonoBehaviour
                 Heal(2);
                 break;
             case (int)SupportCost.Special:
-                
+                _costBuff.Value += 1;
+                _attackBuff.Value += 1;
+                _defenceBuff.Value += 1;
                 break;
         }
     }
@@ -134,10 +137,14 @@ public class BattlerModel : MonoBehaviour
         _health.Value = value;
     }
 
-    public void Damage(int damage)
+    public async UniTask Damage(int damage)
     {
+        await UniTask.WaitForSeconds(1.0f);
         int old = _health.Value;
-        _health.Value -= damage;
+        int preHP = _health.Value - damage;
+        if (preHP < 0) _health.Value = 0;
+        else _health.Value -= damage;
+        
         _isDamage.Value = true;
         DebugDisplayHP(old, _health.Value);
     }

@@ -19,31 +19,33 @@ public class SetScreenResolution : SingletonMonoBehaviour<SetScreenResolution>
     bool isFullscreen = true;
     private void Awake()
     {
-        if (isFullscreen)
-        {
-            Screen.SetResolution(1920 / 2, 1080 / 2, false);
-            isFullscreen = false;
-        }
-        else
-        {
-            Screen.SetResolution(1920, 1080, true);
-            isFullscreen = true;
-        }
+        Screen.SetResolution(1920, 1080, true);
+        isFullscreen = true;
+        //if (isFullscreen)
+        //{
+        //    Screen.SetResolution(1920 / 2, 1080 / 2, false);
+        //    isFullscreen = false;
+        //}
+        //else
+        //{
+        //    Screen.SetResolution(1920, 1080, true);
+        //    isFullscreen = true;
+        //}
     }
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if(isFullscreen)
-            {
-                Screen.SetResolution(1920 / 2, 1080 / 2, false);
-                isFullscreen = false;
-            }
-            else
-            {
-                Screen.SetResolution(1920, 1080, true);
-                isFullscreen = true;
-            }
-        }
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //{
+        //    if(isFullscreen)
+        //    {
+        //        Screen.SetResolution(1920 / 2, 1080 / 2, false);
+        //        isFullscreen = false;
+        //    }
+        //    else
+        //    {
+        //        Screen.SetResolution(1920, 1080, true);
+        //        isFullscreen = true;
+        //    }
+        //}
     }
 }

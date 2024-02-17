@@ -15,8 +15,8 @@ public class CardGenerator : MonoBehaviour
 
     [SerializeField] private Card cardPrefab;
 
-    [SerializeField] private List<string[]> cardInfoData = new List<string[]>();
     [SerializeField] private TextAsset cardInfoCSV = null;
+    [SerializeField] private TextAsset[] decks = null;
     [SerializeField] private List<CardBase> cardBases = new List<CardBase>();
 
     public List<CardBase> CardBases { get => cardBases; }
@@ -31,44 +31,62 @@ public class CardGenerator : MonoBehaviour
     {
         //ロケート
         Locator<CardGenerator>.Bind(this);
+        
+    }
+    public void GenerateCard(int p, int e)
+    {
+        Debug.Log(p + ";" + e);
         IsLoadingCSV = true;
+
         // カードの読み込み
-        cardInfoData = CSVLoader.Load(cardInfoCSV, isFirstLine: false);
-        for (int i = 0; i < cardInfoData.Count; i++)
+        List<string[]> cardInfoData = new List<string[]>();  
+        cardInfoData = CSVLoader.Load(decks[p], isFirstLine: false);
+        LoadCard(cardInfoData);
+        cardInfoData = CSVLoader.Load(decks[e], isFirstLine: false);
+        LoadCard(cardInfoData);
+
+        IsLoadingCSV = false;
+        
+    }
+
+    private void LoadCard(List<string[]> cards)
+    {
+        for (int i = 0; i < cards.Count; i++)
         {
-            int id = int.Parse(cardInfoData[i][(int)Num.Id]);
-            string name = cardInfoData[i][(int)Num.Name];
-            string desc = cardInfoData[i][(int)Num.Description];
-            string sDesc = cardInfoData[i][(int)Num.SDescription];
-            string supDesc = cardInfoData[i][(int)Num.SupportDescription];
-            int cost = int.Parse(cardInfoData[i][(int)Num.Cost]);
-            int attackAhead = int.Parse(cardInfoData[i][(int)Num.AttackAhead]);
-            int damage = int.Parse(cardInfoData[i][(int)Num.Damage]);
-            int sDamage = int.Parse(cardInfoData[i][(int)Num.Damage]);
+            int id = CardBases.Count;
+            int id2 = int.Parse(cards[i][(int)Num.Id]);
+            string name = cards[i][(int)Num.Name];
+            string desc = cards[i][(int)Num.Description];
+            string sDesc = cards[i][(int)Num.SDescription];
+            string supDesc = cards[i][(int)Num.SupportDescription];
+            int cost = int.Parse(cards[i][(int)Num.Cost]);
+            int attackAhead = int.Parse(cards[i][(int)Num.AttackAhead]);
+            int damage = int.Parse(cards[i][(int)Num.Damage]);
+            int sDamage = int.Parse(cards[i][(int)Num.Damage]);
             int[] attackRange = new int[18];
-            //int[] sAttackRange = new int[9];
             for (int j = 0; j < attackRange.Length; j++)
             {
-                attackRange[j] = int.Parse(cardInfoData[i][(int)Num.AttackRange + j]);
+                attackRange[j] = int.Parse(cards[i][(int)Num.AttackRange + j]);
             }
+            var type = ReturnEType(cards[i][(int)Num.EType]);
             CardBases.Add(
                 new CardBase(
-                      id: id,
-                      name: name,
-                      desc: desc,
-                      sDesc: sDesc,
-                      supDesc: supDesc,
-                      cost: cost,
-                      attackAhead: attackAhead,
-                      attackPos: ReturnAttackPos(attackRange),
-                      damage: damage,
-                      sAttackPos: ReturnAttackPos(attackRange),
-                      sDamage: sDamage,
-                      ReturnEType(cardInfoData[i][(int)Num.EType])
-                    )
-                );
+                     id: id,
+                     id2: id2,
+                     name: name,
+                     desc: desc,
+                     sDesc: sDesc,
+                     supDesc: supDesc,
+                     cost: cost,
+                     attackAhead: attackAhead,
+                     attackPos: ReturnAttackPos(attackRange),
+                     damage: damage,
+                     sAttackPos: ReturnAttackPos(attackRange),
+                     sDamage: sDamage,
+                     ReturnEType(cards[i][(int)Num.EType])
+               )
+            );
         }
-        IsLoadingCSV = false;
         List<Vector2Int> ReturnAttackPos(int[] posData)
         {
             List<Vector2Int> attackPos = new List<Vector2Int>();
@@ -86,7 +104,7 @@ public class CardGenerator : MonoBehaviour
         {
             if (type == "Curse") return CardTypeM.Curse;
             else if (type == "Tech") return CardTypeM.Tech;
-            else if (type == "Magic")return CardTypeM.Magic;
+            else if (type == "Magic") return CardTypeM.Magic;
             else
             {
                 return (CardTypeM)Random.Range(0, 3);
@@ -94,6 +112,7 @@ public class CardGenerator : MonoBehaviour
             //else Debug.LogError("未知のElementTypeです"); 
         }
     }
+
     private void OnDisable()
     {
         Locator<CardGenerator>.Unbind(this);
@@ -116,16 +135,16 @@ public class CardGenerator : MonoBehaviour
 
     public Card DrawMethod(int cards, bool isEnemy)
     {
-        int rand = UnityEngine.Random.Range(0, cards);
+        int rand = Random.Range(0, cards);
         Card card = Instantiate(cardPrefab);
-
+        Debug.Log(rand);
         card.Set(CardBases[rand], isEnemy);
         return card;
     }
 
     public Card DrawMethod(List<int> ids , bool isEnemy)
     {
-        int rand = UnityEngine.Random.Range(0, ids.Count);
+        int rand = Random.Range(0, ids.Count);
         Card card = Instantiate(cardPrefab);
         card.Set(CardBases[ids[rand]], isEnemy);
         return card;

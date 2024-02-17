@@ -3,8 +3,6 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine.UI;
-using Unity.VisualScripting;
-using System;
 
 public class Battler : MonoBehaviour
 {
@@ -213,7 +211,7 @@ public class Battler : MonoBehaviour
             //Debug.Log("ダメージを受ける地点" + attackPos[i]);
             if (battlerMove.PiecePos == attackPos[i])
             {
-                Model.Damage(damage);
+                Model.Damage(damage).Forget();
                 return damage;
                 //Debug.Log(damage + "ダメージ。");
             }

@@ -33,7 +33,7 @@ public class Card : MonoBehaviour
         //matchDescription.text = "<color=#ff00ff>現在の属性と同じ属性だったら</color>\n" + cardBase.SDescription;
         supDescription.text = "<color=#da70d6>サポート使用時</color>\n" + cardBase.SupDescription;
         cost.text = (cardBase.Cost + 1).ToString();
-        cardImage.sprite = cardImageSprite[cardBase.Id];
+        cardImage.sprite = cardImageSprite[cardBase.Id2];
         cardFrame.sprite = cardFrameSprite[(int)cardBase.Type];
 
         // 自分のカードはボタンを表示、相手のカードは裏面表示

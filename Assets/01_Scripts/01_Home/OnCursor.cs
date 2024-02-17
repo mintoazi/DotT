@@ -28,7 +28,7 @@ public class OnCursor : MonoBehaviour, IPointerEnterHandler, IPointerClickHandle
     private void Update() { } // Inspector•\¦—p
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log(onClicked);
+        //Debug.Log(onClicked);
         // 1‰ñ–Ú‚Ì‚İˆ—
         if (onClicked) return;
         onClicked = true;

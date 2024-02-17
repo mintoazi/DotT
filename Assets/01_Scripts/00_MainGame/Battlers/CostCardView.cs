@@ -16,8 +16,8 @@ public class CostCardView : MonoBehaviour
         cardName.text = card.Base.Name;
         description.text = card.Base.Description;
         supDescription.text = card.Base.SupDescription;
-        cost.text = card.Base.Cost.ToString();
+        cost.text = (card.Base.Cost+1).ToString();
         cardFrame.sprite = cardFrameSprite[(int)card.Base.Type];
-        cardImage.sprite = cardSprite[card.Base.Id];
+        cardImage.sprite = cardSprite[card.Base.Id2];
     }
 }

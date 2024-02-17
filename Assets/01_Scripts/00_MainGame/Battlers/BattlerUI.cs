@@ -18,8 +18,8 @@ public class BattlerUI : MonoBehaviour
     [SerializeField] private Color usedColor;
  
     // キャラクターの表示
-    [SerializeField] private Image battlerSkin;
-    [SerializeField] private Sprite[] battlerSprite;
+    //[SerializeField] private Image battlerSkin;
+    //[SerializeField] private Sprite[] battlerSprite;
 
     [SerializeField] private Image fieldSkin;
     [SerializeField] private Sprite[] fieldSprite;
@@ -34,10 +34,11 @@ public class BattlerUI : MonoBehaviour
     [SerializeField]
     private Text[] addValues;
 
-    [SerializeField] private SkeletonDataAsset[] skeletons;
+    [SerializeField] private GameObject[] skeletons;
     [SerializeField] private string[] stateName;
     [SerializeField] private SkeletonGraphic skeletonAnimation;
     private Spine.AnimationState spineAnimationState;
+    int myChara = 0;
 
     private enum UI_Index 
     {
@@ -54,21 +55,24 @@ public class BattlerUI : MonoBehaviour
         Damage,
     }
 
-    private void Awake()
+    private void Init()
     {
+        skeletons[myChara].SetActive(true);
+        skeletonAnimation = skeletons[myChara].GetComponent<SkeletonGraphic>();
         spineAnimationState = skeletonAnimation.AnimationState;
     }
     public void UpdateCharaType(int charaType)
     {
-        battlerSkin.sprite = battlerSprite[charaType];
+        //battlerSkin.sprite = battlerSprite[charaType];
         fieldSkin.sprite = fieldSprite[charaType];
         typeImage.sprite = typeSprite[charaType];
         for (int i = 0; i < costsImage.Length; i++)
         {
             costsImage[i].sprite = costsType[charaType];
         }
-
-        skeletonAnimation.skeletonDataAsset = skeletons[charaType];
+        myChara = charaType;
+        
+        Init();
         PlayIdleAnimation(null);
     }
 
@@ -89,8 +93,10 @@ public class BattlerUI : MonoBehaviour
 
     public void DamageEffect(bool isDamage)
     {
+        Debug.Log("damage");
         if (isDamage)
         {
+            Debug.Log("damage2");
             ShakeChara(0.3f, 20).Forget();
             PlayAnimation((int)StateName.Damage, isLoop: false);
         }
@@ -135,14 +141,14 @@ public class BattlerUI : MonoBehaviour
             s = "0";
         }
 
-        Debug.Log("<color=red> UI </color>");
+        //Debug.Log("<color=red> UI </color>");
         addValues[(int)index].text = s;
         playableDirectors[(int)index].Play();
     }
 
     private async UniTask ShakeChara(float duration, float magnitude)
     {
-        Vector3 oldPos = battlerSkin.rectTransform.localPosition;
+        Vector3 oldPos = skeletonAnimation.rectTransform.localPosition;
         float time = duration;
         Vector3 shake = new Vector3();
         while (time > 0)
@@ -150,10 +156,10 @@ public class BattlerUI : MonoBehaviour
             time -= Time.deltaTime;
             shake.x = Random.Range(-magnitude, magnitude);
             shake.y = Random.Range(-magnitude, magnitude);
-            battlerSkin.rectTransform.localPosition = oldPos + shake;
+            skeletonAnimation.rectTransform.localPosition = oldPos + shake;
             await UniTask.DelayFrame(1);
         }
-        battlerSkin.rectTransform.localPosition = oldPos;
+        skeletonAnimation.rectTransform.localPosition = oldPos;
     }
 
     private void HealEffect()
