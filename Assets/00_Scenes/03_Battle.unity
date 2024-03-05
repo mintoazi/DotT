@@ -15325,6 +15325,10 @@ MonoBehaviour:
   cardPrefab: {fileID: 6900029862137506438, guid: 52e5ed179567bf543983da62fd16b0c7,
     type: 3}
   cardInfoCSV: {fileID: 4900000, guid: 082dfe2e5bc7e0a46a4dd15366a11713, type: 3}
+  decks:
+  - {fileID: 4900000, guid: ff5d95b85a2a5054ea5e40504a2d82da, type: 3}
+  - {fileID: 4900000, guid: ebac9e3ec674c7d41aa34f1c2b233659, type: 3}
+  - {fileID: 4900000, guid: f5fac26e818d69049b03179eb21458e9, type: 3}
 --- !u!4 &1503926617
 Transform:
   m_ObjectHideFlags: 0

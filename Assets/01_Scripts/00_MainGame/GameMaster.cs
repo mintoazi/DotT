@@ -137,31 +137,33 @@ public class GameMaster : MonoBehaviourPunCallbacks
     private async UniTask InitPhase()
     {
         int firstType, secondType;
-        int firstDeck, secondDeck;
+        //int firstDeck, secondDeck;
         isPhase = true;
         if (!isOnline)
         {
             firstType = PlayerData.Instance.PlayerChara;
             secondType = PlayerData.Instance.EnemyChara;
-            firstDeck = PlayerData.Instance.PlayerDeck;
-            secondDeck = PlayerData.Instance.EnemyDeck;
+            //firstDeck = PlayerData.Instance.PlayerDeck;
+            //secondDeck = PlayerData.Instance.EnemyDeck;
         }
         else if (PhotonNetwork.IsMasterClient)
         {
             firstType = OnlineMenuManager.HostCharacter;
             secondType = OnlineMenuManager.GuestCharacter;
-            firstDeck = OnlineMenuManager.HostDeck;
-            secondDeck = OnlineMenuManager.GuestDeck;
+            //firstDeck = OnlineMenuManager.HostDeck;
+            //secondDeck = OnlineMenuManager.GuestDeck;
         }
         else
         {
             firstType = OnlineMenuManager.GuestCharacter;
             secondType = OnlineMenuManager.HostCharacter;
-            firstDeck = OnlineMenuManager.HostDeck;
-            secondDeck = OnlineMenuManager.GuestDeck;
+            //firstDeck = OnlineMenuManager.HostDeck;
+            //secondDeck = OnlineMenuManager.GuestDeck;
         }
 
-        Locator<CardGenerator>.Instance.GenerateCard(firstDeck, secondDeck);
+        // Locator<CardGenerator>.Instance.GenerateCard(firstDeck, secondDeck);
+        if(isOnline) Locator<CardGenerator>.Instance.GenerateCard(OnlineMenuManager.HostCharacter, OnlineMenuManager.GuestCharacter);
+        else Locator<CardGenerator>.Instance.GenerateCard(PlayerData.Instance.PlayerChara, PlayerData.Instance.EnemyChara);
         //Debug.Log(firstType);
         player.Model.Init(20, firstType);
         player.BattlerMove.Init(firstType);

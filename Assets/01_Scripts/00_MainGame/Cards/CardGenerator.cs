@@ -41,15 +41,15 @@ public class CardGenerator : MonoBehaviour
         // カードの読み込み
         List<string[]> cardInfoData = new List<string[]>();  
         cardInfoData = CSVLoader.Load(decks[p], isFirstLine: false);
-        LoadCard(cardInfoData);
+        LoadCard(cardInfoData,p);
         cardInfoData = CSVLoader.Load(decks[e], isFirstLine: false);
-        LoadCard(cardInfoData);
+        LoadCard(cardInfoData,e);
 
         IsLoadingCSV = false;
         
     }
 
-    private void LoadCard(List<string[]> cards)
+    private void LoadCard(List<string[]> cards,int t)
     {
         for (int i = 0; i < cards.Count; i++)
         {
@@ -68,7 +68,7 @@ public class CardGenerator : MonoBehaviour
             {
                 attackRange[j] = int.Parse(cards[i][(int)Num.AttackRange + j]);
             }
-            var type = ReturnEType(cards[i][(int)Num.EType]);
+            //var type = ReturnEType(cards[i][(int)Num.EType]);
             CardBases.Add(
                 new CardBase(
                      id: id,
@@ -83,7 +83,7 @@ public class CardGenerator : MonoBehaviour
                      damage: damage,
                      sAttackPos: ReturnAttackPos(attackRange),
                      sDamage: sDamage,
-                     ReturnEType(cards[i][(int)Num.EType])
+                     ReturnEType(t)
                )
             );
         }
@@ -100,15 +100,16 @@ public class CardGenerator : MonoBehaviour
 
             return attackPos;
         }
-        CardTypeM ReturnEType(string type)
+        CardTypeM ReturnEType(int t)
         {
-            if (type == "Curse") return CardTypeM.Curse;
-            else if (type == "Tech") return CardTypeM.Tech;
-            else if (type == "Magic") return CardTypeM.Magic;
-            else
-            {
-                return (CardTypeM)Random.Range(0, 3);
-            }
+            return (CardTypeM)t;
+            //if (type == "Curse") return CardTypeM.Curse;
+            //else if (type == "Tech") return CardTypeM.Tech;
+            //else if (type == "Magic") return CardTypeM.Magic;
+            //else
+            //{
+            //    return (CardTypeM)Random.Range(0, 3);
+            //}
             //else Debug.LogError("未知のElementTypeです"); 
         }
     }

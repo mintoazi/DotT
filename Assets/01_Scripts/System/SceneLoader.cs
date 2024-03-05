@@ -23,6 +23,7 @@ public class SceneLoader : SingletonMonoBehaviour<SceneLoader>
 
     [SerializeField] private Image fadePanel;
     [SerializeField] private Animator anim;
+    [SerializeField] private RamdomText ramdomText;
 
     private string[] sceneName = new string[6] { 
         "00_Title", // Scene.TITLE
@@ -41,6 +42,7 @@ public class SceneLoader : SingletonMonoBehaviour<SceneLoader>
         float time = Time.time; // ロード所要時間計測開始
 
         FadeAlpha.FadeOut(fadePanel).Forget(); // フェードアウト
+        ramdomText.StartLoad();
         anim.SetTrigger("LoadStart");
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName[(int)scene]); // 非同期でロードを行う
 
@@ -63,6 +65,7 @@ public class SceneLoader : SingletonMonoBehaviour<SceneLoader>
         await asyncLoad;
 
         anim.SetTrigger("LoadEnd");
+        ramdomText.FadeIn();
         FadeAlpha.FadeIn(fadePanel).Forget(); // フェードイン
     }
 }
